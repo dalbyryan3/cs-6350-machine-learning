@@ -1,5 +1,3 @@
-from logging import root
-from os import WSTOPPED
 import unittest
 from decision_tree import DecisionTree, Node
 
@@ -34,38 +32,6 @@ class DecisionTreeTester(unittest.TestCase):
         # Build example
         return {self.attributes[0]:outlook, self.attributes[1]:temperature,self.attributes[2]:humidity, self.attributes[3]:wind}
 
-    def visualize_tree(self, root_node, should_print=False):
-        tree_str = {} 
-
-        # Essentially BFS
-        queue = []
-        visited = []
-        queue.append((root_node,''))
-        visited.append(root_node)
-        while queue:
-            current_node_tuple = queue.pop(0)
-            current_node = current_node_tuple[0]
-            current_node_name = str(current_node.name)
-            current_node_weight = str(current_node_tuple[1])
-            current_depth = current_node.node_depth()
-            if current_depth in tree_str:
-                tree_str[current_depth] += (current_node_weight + '-->' + current_node_name + '    ')
-            else:
-                tree_str[current_depth] = (current_node_weight + '-->' + current_node_name + '    ')
-            for i in range(len(current_node.children)):
-                child = current_node.children[i]
-                weight = current_node.weights[i]
-                if(child not in visited):
-                    queue.append((child, weight))
-                    visited.append(child)
-        if (should_print):
-            print()
-            print('Visualize tree: ')
-            for key in tree_str.keys():
-                print(tree_str[key])
-            print('End visualization ')
-            print()
-        return tree_str
         
     # Testing methods
     def test_entropy(self):
@@ -134,16 +100,17 @@ class DecisionTreeTester(unittest.TestCase):
         rainy_label_vals = Sv_dict['Rainy'][1]
         self.assertListEqual(rainy_label_vals, [True, True, False, True, False])
     
-    def test_ID3Train(self):
+    def test_ID3_train(self):
         dc = DecisionTree(self.attribute_possible_vals)
-        root_node = dc.ID3_train(self.S, self.attributes, self.labels)
-        tree_str = self.visualize_tree(root_node)
+
+        dc.ID3_train(self.S, self.attributes, self.labels)
+        tree_str = dc.visualize_tree(should_print=True)
         self.assertEqual(tree_str[0], '-->Outlook    ')
         self.assertEqual(tree_str[1], 'Sunny-->Humidity    Overcast-->True    Rainy-->Wind    ')
         self.assertEqual(tree_str[2], 'High-->False    Normal-->True    Low-->False    Strong-->False    Weak-->True    ')
 
-        root_node = dc.ID3_train(self.S, self.attributes, self.labels, max_depth=1)
-        tree_str = self.visualize_tree(root_node)
+        dc.ID3_train(self.S, self.attributes, self.labels, max_depth=1)
+        tree_str = dc.visualize_tree(should_print=True)
         self.assertEqual(tree_str[0], '-->Outlook    ')
         self.assertEqual(tree_str[1], 'Sunny-->False    Overcast-->True    Rainy-->True    ')
 

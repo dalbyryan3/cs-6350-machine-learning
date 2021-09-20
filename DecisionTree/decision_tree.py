@@ -1,28 +1,6 @@
 import math
 from os import name
-# car_test_data = pd.read_csv('car/test.csv', )
-# car_train_data = pd.read_csv('car/train.csv')
 
-# bank_test_data = pd.read_csv('bank/test.csv')
-# bank_train_data = pd.read_csv('bank/train.csv')
-def extract_ID3_input(filename, attributes):
-    S = []
-    labels = []
-    with open(filename, 'r') as f:
-        for line in f:
-            terms = line.strip().split(',')
-            if len(terms) != (len(attributes)+1):
-                raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
-            # Make dictionary mapping from attribute to value
-            example_dict = {}
-            for i in range(len(attributes)):
-                a = attributes[i]
-                example_dict[a] = terms[i]  
-            labels.append(terms[-1])
-            S.append(example_dict)
-    return (S, attributes, labels)
-
-# (S, attributes, labels) = extract_ID3_input('car/test.csv', ['1','2','3','4','5','6'])
 
 class Node:
     def __init__(self, name):
@@ -51,13 +29,14 @@ class Node:
 
 class DecisionTree:
     def __init__(self, attribute_possible_vals):
-        # A dictionary mapping from keys of all potential attributes to a list of all possible values for that attribute
-
         self.attribute_possible_vals = attribute_possible_vals
-        # self.root = Node('root')
-        # self.current_node = self.root
+        self.root = None
 
     def ID3_train(self, S, attributes, labels, metric=None, max_depth=None):
+        self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
+        return self.root
+        
+    def ID3(self, S, attributes, labels, metric=None, max_depth=None):
         if len(S) <= 0 or len(labels) != len(S):
             raise Exception('Must have at least a single example and label and they must be the be same length')
 
@@ -92,11 +71,66 @@ class DecisionTree:
                     most_common_label = max(possible_labels, key=labels_v.count)
                     labels_v = [most_common_label] * len(labels_v)
                 reduced_attributes = set(attributes) - set([best_attribute])
-                root_node.add_child(self.ID3_train(Sv, reduced_attributes, labels_v, metric=metric, max_depth=max_depth), value)
+                root_node.add_child(self.ID3(Sv, reduced_attributes, labels_v, metric=metric, max_depth=max_depth), value)
         return root_node
     
     def number_of_attribute_splits(self, current_attributes):
         return len(self.attribute_possible_vals.keys()) - len(current_attributes)
+
+    def visualize_tree(self, should_print=False):
+        tree_str = {} 
+        # Essentially BFS
+        queue = []
+        visited = []
+        queue.append((self.root,''))
+        visited.append(self.root)
+        while queue:
+            current_node_tuple = queue.pop(0)
+            current_node = current_node_tuple[0]
+            current_node_name = str(current_node.name)
+            current_node_weight = str(current_node_tuple[1])
+            current_depth = current_node.node_depth()
+            if current_depth in tree_str:
+                tree_str[current_depth] += (current_node_weight + '-->' + current_node_name + '    ')
+            else:
+                tree_str[current_depth] = (current_node_weight + '-->' + current_node_name + '    ')
+            for i in range(len(current_node.children)):
+                child = current_node.children[i]
+                weight = current_node.weights[i]
+                if(child not in visited):
+                    queue.append((child, weight))
+                    visited.append(child)
+        if (should_print):
+            print()
+            print('Visualize tree: ')
+            for key in tree_str.keys():
+                print()
+                print(tree_str[key])
+                print()
+            print('End visualization ')
+            print()
+        return tree_str
+
+    @classmethod
+    def extract_ID3_input(cls, filename, attributes):
+        S = []
+        labels = []
+        with open(filename, 'r') as f:
+            for line in f:
+                terms = line.strip().split(',')
+                if len(terms) != (len(attributes)+1):
+                    raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
+                # Make dictionary mapping from attribute to value
+                example_dict = {}
+                for i in range(len(attributes)):
+                    a = attributes[i]
+                    example_dict[a] = terms[i]  
+                labels.append(terms[-1])
+                S.append(example_dict)
+        attribute_possible_vals_in_this_data = {}
+        for a in attributes:
+            attribute_possible_vals_in_this_data[a] = list(cls.get_attribute_values(S, a))
+        return (S, attributes, labels, attribute_possible_vals_in_this_data)
 
     @classmethod
     def entropy(cls, labels):
