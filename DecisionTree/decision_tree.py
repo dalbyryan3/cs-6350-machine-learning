@@ -21,7 +21,7 @@ def extract_ID3_input(filename, attributes):
             S.append(example_dict)
     return (S, attributes, labels)
 
-(S, attributes, labels) = extract_ID3_input('car/test.csv', ['1','2','3','4','5','6'])
+# (S, attributes, labels) = extract_ID3_input('car/test.csv', ['1','2','3','4','5','6'])
 
 class Node:
     def __init__(self, name):
@@ -79,6 +79,43 @@ class DecisionTree:
             label_prob = label_count/N
             label_prob_sum += label_prob**2 
         return 1-label_prob_sum
+
+    @staticmethod
+    def gain(S, labels, attribute, metric=entropy):
+        N = len(S)
+        S_metric = metric(labels)
+        expected_metric_sum = 0
+        Sv_dict = DecisionTree.get_value_subset(S, labels, attribute)
+        for Sv_key in Sv_dict.keys():
+            Sv = Sv_dict[Sv_key]
+            labels_v = [i[1] for i in Sv]
+            expected_metric_sum += (len(Sv)/N) * metric(labels_v)
+        # Returns gain value and the splitted subsets from splitting on attribute
+        return (S_metric - expected_metric_sum, Sv_dict)
+
+    @staticmethod
+    def get_attribute_values(S, attribute):
+        attribute_vals = set()
+        for example in S:
+            ex_val = example[attribute]
+            attribute_vals.add(ex_val)
+        return attribute_vals
+
+    @staticmethod
+    def get_value_subset(S, labels, attribute):
+        if (len(S) != len(labels)):
+            raise Exception('S must be the same length as corresponding labels')
+        Sv_dict = {}
+        for i in range(len(S)):
+            example = S[i]
+            label = labels[i]
+            ex_val = example[attribute]
+            if ex_val in Sv_dict:
+                Sv_dict[ex_val].append((example, label))
+            else:
+                Sv_dict[ex_val] = [(example, label)]
+        return Sv_dict
+
 
 
     def ID3_train(self, S, attributes, labels, max_depth=None):
