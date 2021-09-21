@@ -103,15 +103,15 @@ class DecisionTreeTester(unittest.TestCase):
     def test_ID3_train(self):
         dc = DecisionTree(self.attribute_possible_vals)
 
-        dc.ID3_train(self.S, self.attributes, self.labels)
-        tree_str = dc.visualize_tree(should_print=True)
-        self.assertEqual(tree_str[0], '-->Outlook    ')
-        self.assertEqual(tree_str[1], 'Sunny-->Humidity    Overcast-->True    Rainy-->Wind    ')
-        self.assertEqual(tree_str[2], 'High-->False    Normal-->True    Low-->False    Strong-->False    Weak-->True    ')
+        dc.train(self.S, self.attributes, self.labels)
+        tree_str = dc.visualize_tree()
+        self.assertEqual(tree_str[0], '---->Outlook    ')
+        self.assertEqual(tree_str[1], 'Outlook--Sunny-->Humidity    Outlook--Overcast-->True    Outlook--Rainy-->Wind    ')
+        self.assertEqual(tree_str[2], 'Humidity--High-->False    Humidity--Normal-->True    Humidity--Low-->False    Wind--Strong-->False    Wind--Weak-->True    ')
 
-        dc.ID3_train(self.S, self.attributes, self.labels, max_depth=1)
-        tree_str = dc.visualize_tree(should_print=True)
-        self.assertEqual(tree_str[0], '-->Outlook    ')
-        self.assertEqual(tree_str[1], 'Sunny-->False    Overcast-->True    Rainy-->True    ')
+        dc.train(self.S, self.attributes, self.labels, max_depth=1)
+        tree_str = dc.visualize_tree()
+        self.assertEqual(tree_str[0], '---->Outlook    ')
+        self.assertEqual(tree_str[1], 'Outlook--Sunny-->False    Outlook--Overcast-->True    Outlook--Rainy-->True    ')
 
 unittest.main(argv=[''], verbosity=2, exit=False)

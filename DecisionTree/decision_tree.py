@@ -32,7 +32,7 @@ class DecisionTree:
         self.attribute_possible_vals = attribute_possible_vals
         self.root = None
 
-    def ID3_train(self, S, attributes, labels, metric=None, max_depth=None):
+    def train(self, S, attributes, labels, metric=None, max_depth=None):
         self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
         return self.root
         
@@ -73,7 +73,7 @@ class DecisionTree:
                 reduced_attributes = set(attributes) - set([best_attribute])
                 root_node.add_child(self.ID3(Sv, reduced_attributes, labels_v, metric=metric, max_depth=max_depth), value)
         return root_node
-    
+
     def number_of_attribute_splits(self, current_attributes):
         return len(self.attribute_possible_vals.keys()) - len(current_attributes)
 
@@ -88,12 +88,15 @@ class DecisionTree:
             current_node_tuple = queue.pop(0)
             current_node = current_node_tuple[0]
             current_node_name = str(current_node.name)
+            current_node_parent_name = ''
+            if (current_node.parent is not None):
+                current_node_parent_name = str(current_node.parent.name)
             current_node_weight = str(current_node_tuple[1])
             current_depth = current_node.node_depth()
             if current_depth in tree_str:
-                tree_str[current_depth] += (current_node_weight + '-->' + current_node_name + '    ')
+                tree_str[current_depth] += current_node_parent_name + '--' + current_node_weight + '-->' + current_node_name + '    '
             else:
-                tree_str[current_depth] = (current_node_weight + '-->' + current_node_name + '    ')
+                tree_str[current_depth] = current_node_parent_name + '--' + current_node_weight + '-->' + current_node_name + '    '
             for i in range(len(current_node.children)):
                 child = current_node.children[i]
                 weight = current_node.weights[i]
@@ -104,8 +107,8 @@ class DecisionTree:
             print()
             print('Visualize tree: ')
             for key in tree_str.keys():
+                print('DEPTH=' + str(key) + ': ' + tree_str[key])
                 print()
-                print(tree_str[key])
                 print()
             print('End visualization ')
             print()
