@@ -1,13 +1,12 @@
 import math
-from os import name
+from os import EX_CANTCREAT, name
 
 
 class Node:
     def __init__(self, name):
         self.name = name
         self.parent = None
-        self.children = []
-        self.weights = [] 
+        self.children = {} 
     def add_child(self, child, weight):
         self.add_children([child], [weight])
     def add_children(self, children_to_add, weights):
@@ -16,8 +15,7 @@ class Node:
                 child = children_to_add[i]
                 weight = weights[i]
                 assert isinstance(child, Node)
-                self.children.append(child)
-                self.weights.append(weight)
+                self.children[weight] = child
                 child.parent = self
     def node_depth(self):
         depth = 0
@@ -35,6 +33,18 @@ class DecisionTree:
     def train(self, S, attributes, labels, metric=None, max_depth=None):
         self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
         return self.root
+    
+    # def predict(self, S):
+    #     if self.root is None:
+    #         raise Exception('DecisionTree must be trained on data')
+    #     labels = []
+    #     for example in S:
+    #         current_node = self.root
+    #         # TODO
+
+    #         if len(current_node.children) == 0:
+    #             labels.append(current_node.name)
+    #     return labels
         
     def ID3(self, S, attributes, labels, metric=None, max_depth=None):
         if len(S) <= 0 or len(labels) != len(S):
@@ -97,9 +107,8 @@ class DecisionTree:
                 tree_str[current_depth] += current_node_parent_name + '--' + current_node_weight + '-->' + current_node_name + '    '
             else:
                 tree_str[current_depth] = current_node_parent_name + '--' + current_node_weight + '-->' + current_node_name + '    '
-            for i in range(len(current_node.children)):
-                child = current_node.children[i]
-                weight = current_node.weights[i]
+            for weight in current_node.children.keys():
+                child = current_node.children[weight]
                 if(child not in visited):
                     queue.append((child, weight))
                     visited.append(child)
