@@ -27,14 +27,39 @@ class Node:
 
 class DecisionTree:
     def __init__(self, attribute_possible_vals):
+        """ Creates DecisionTree object with a description of possible attributes and their possible values
+
+        Args:
+            attribute_possible_vals (dict of str: list[str]): A dictionary mapping from all possible attributes to a list containing every possible value for the attribute
+        """
         self.attribute_possible_vals = attribute_possible_vals
         self.root = None
 
     def train(self, S, attributes, labels, metric=None, max_depth=None):
+        """ Trains decision tree on labelled data
+
+        Args:
+            S (list of dict[str: str]): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
+            attributes (list[str]): A list containing each possible attribute value 
+            labels (list): A list of the labels for each example in S. Must be same order and length as S. 
+            metric (Callable[[list], float], optional): Callable function representing the metric (heuristic) to use to determine how to split decision tree when training. Defaults to None which will use entropy as the heuristic.
+            max_depth (int, optional): Maximum depth of decision tree, if examples not perfectly split and max_depth is hit will choose most common class as leaf node. Defaults to None which means tree depth will not be limited.
+
+        Returns:
+            Node: Root node of the Decision tree. 
+        """
         self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
         return self.root
     
     def predict(self, S):
+        """ Predicts on already trained decision tree
+
+        Args:
+            S (list of dict): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
+
+        Returns:
+            List of predicted labels corresponding to each example given in S.
+        """
         if self.root is None:
             raise Exception('DecisionTree must be trained on data')
         labels = []
@@ -131,27 +156,6 @@ class DecisionTree:
         return tree_str
 
     @classmethod
-    def extract_ID3_input(cls, filename, attributes):
-        S = []
-        labels = []
-        with open(filename, 'r') as f:
-            for line in f:
-                terms = line.strip().split(',')
-                if len(terms) != (len(attributes)+1):
-                    raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
-                # Make dictionary mapping from attribute to value
-                example_dict = {}
-                for i in range(len(attributes)):
-                    a = attributes[i]
-                    example_dict[a] = terms[i]  
-                labels.append(terms[-1])
-                S.append(example_dict)
-        attribute_possible_vals_in_this_data = {}
-        for a in attributes:
-            attribute_possible_vals_in_this_data[a] = list(cls.get_attribute_values(S, a))
-        return (S, attributes, labels, attribute_possible_vals_in_this_data)
-
-    @classmethod
     def entropy(cls, labels):
         N = len(labels)
         possible_labels = set(labels)
@@ -241,14 +245,3 @@ class DecisionTree:
                 best_gain = current_gain
         # Returns a tuple of the best attribute, a dictionary maps to a tuple of (Sv, labels_v) representing the subsets of S for splitting on the best attribute, and the best gain value
         return (best_attribute, best_Sv_dict, best_gain)
-
-    @classmethod
-    def prediction_error(cls, y_pred, y_actual):
-        # Determine prediction error 
-        if len(y_pred) != len(y_actual):
-            raise Exception('y_pred and y_actual are not the same length')
-        error_count = 0
-        for i in range(len(y_pred)):
-            if y_pred[i] != y_actual[i]:
-                error_count +=1
-        return error_count/len(y_pred)
