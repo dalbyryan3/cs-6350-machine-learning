@@ -104,13 +104,13 @@ class DecisionTreeTester(unittest.TestCase):
         dc = DecisionTree(self.attribute_possible_vals)
 
         dc.train(self.S, self.attributes, self.labels)
-        tree_str = dc.visualize_tree(should_print=True)
+        tree_str = dc.visualize_tree(should_print=False)
         self.assertEqual(tree_str[0], '---->Outlook    ')
         self.assertEqual(tree_str[1], 'Outlook--Sunny-->Humidity    Outlook--Overcast-->True    Outlook--Rainy-->Wind    ')
         self.assertEqual(tree_str[2], 'Humidity--High-->False    Humidity--Normal-->True    Humidity--Low-->False    Wind--Strong-->False    Wind--Weak-->True    ')
 
         dc.train(self.S, self.attributes, self.labels, max_depth=1)
-        tree_str = dc.visualize_tree(should_print=True)
+        tree_str = dc.visualize_tree(should_print=False)
         self.assertEqual(tree_str[0], '---->Outlook    ')
         self.assertEqual(tree_str[1], 'Outlook--Sunny-->False    Outlook--Overcast-->True    Outlook--Rainy-->True    ')
 

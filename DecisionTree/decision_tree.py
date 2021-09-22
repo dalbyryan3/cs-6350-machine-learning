@@ -34,17 +34,24 @@ class DecisionTree:
         self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
         return self.root
     
-    # def predict(self, S):
-    #     if self.root is None:
-    #         raise Exception('DecisionTree must be trained on data')
-    #     labels = []
-    #     for example in S:
-    #         current_node = self.root
-    #         # TODO
-
-    #         if len(current_node.children) == 0:
-    #             labels.append(current_node.name)
-    #     return labels
+    def predict(self, S):
+        if self.root is None:
+            raise Exception('DecisionTree must be trained on data')
+        labels = []
+        for example in S:
+            current_node = self.root
+            while len(current_node.children) >= 0:
+                if len(current_node.children) == 0:
+                    labels.append(current_node.name)
+                    break
+                else:
+                    if(current_node.name not in example):
+                        raise Exception('Example did not have attribute={0}'.format(current_node.name))
+                    example_val = example[current_node.name]
+                    if(example_val not in current_node.children):
+                        raise Exception('There was no branch of attribute={0} with value={1}'.format(current_node.name, example_val))
+                    current_node = current_node.children[example_val]
+        return labels
         
     def ID3(self, S, attributes, labels, metric=None, max_depth=None):
         if len(S) <= 0 or len(labels) != len(S):
@@ -228,9 +235,20 @@ class DecisionTree:
         for current_attribute in attributes:
             (current_gain, current_Sv_dict) = cls.gain(S, labels, current_attribute, metric=metric)
             # Will choose best gain based on this equality, if multiple gains of same value will arbitrarily choose one
-            if(current_gain > best_gain):
+            if(current_gain >= best_gain):
                 best_Sv_dict = current_Sv_dict
                 best_attribute = current_attribute
                 best_gain = current_gain
         # Returns a tuple of the best attribute, a dictionary maps to a tuple of (Sv, labels_v) representing the subsets of S for splitting on the best attribute, and the best gain value
         return (best_attribute, best_Sv_dict, best_gain)
+
+    @classmethod
+    def prediction_error(cls, y_pred, y_actual):
+        # Determine prediction error 
+        if len(y_pred) != len(y_actual):
+            raise Exception('y_pred and y_actual are not the same length')
+        error_count = 0
+        for i in range(len(y_pred)):
+            if y_pred[i] != y_actual[i]:
+                error_count +=1
+        return error_count/len(y_pred)
