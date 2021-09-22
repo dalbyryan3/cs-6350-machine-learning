@@ -201,7 +201,11 @@ class DecisionTree:
             (Sv, labels_v) = Sv_dict[Sv_key]
             expected_metric_sum += (len(Sv)/N) * metric(labels_v)
         # Returns gain value and a dictionary that given a value of the attribute maps to a tuple of (Sv, labels_v) representing the subset of S all containing the same value of the attribute
-        return (S_metric - expected_metric_sum, Sv_dict)
+        gain = S_metric - expected_metric_sum
+        # Round to zero to prevent floating point errors compounding
+        if (math.isclose(gain, 0.00, abs_tol=1e-7)):
+            gain = 0.00
+        return (gain, Sv_dict)
 
     @classmethod
     def get_attribute_values(cls, S, attribute):
