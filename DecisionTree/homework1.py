@@ -119,7 +119,7 @@ def errors_for_metrics(attributes, attribute_possible_vals, S_train, labels_trai
 (S_car_train, attributes_car, labels_car_train, attribute_possible_vals_car) = extract_ID3_input('car/train.csv', ['buying','maint','doors','persons','lug_boot','safety'])
 (S_car_test, _, labels_car_test, _) = extract_ID3_input('car/test.csv', ['buying','maint','doors','persons','lug_boot','safety'])
 
-errors_for_metrics(attributes_car, attribute_possible_vals_car, S_car_train, labels_car_train, S_car_test, labels_car_test, 6, verbose=False)
+errors_for_metrics(attributes_car, attribute_possible_vals_car, S_car_train, labels_car_train, S_car_test, labels_car_test, 6, verbose=True)
 
 # %%
 # Decision tree with bank data- unknown as attribute value
@@ -133,7 +133,7 @@ idx_thresh_map = get_attribute_discretize_idx_to_thresh_map('bank/train.csv', ba
 (S_bank_test, _, labels_bank_test, _) = extract_ID3_input('bank/test.csv', bank_attributes, attribute_discretize_idx_to_thresh_map=idx_thresh_map)
 
 print('Bank data set decision tree error with unknown as an attribute value:')
-errors_for_metrics(attributes_bank, attribute_possible_vals_bank, S_bank_train, labels_bank_train, S_bank_test, labels_bank_test, 17, verbose=False)
+errors_for_metrics(attributes_bank, attribute_possible_vals_bank, S_bank_train, labels_bank_train, S_bank_test, labels_bank_test, 16, verbose=True)
 
 # %%
 # Decision tree with bank data- unknown as majority of the values of the same attribute
@@ -143,4 +143,4 @@ replacement_map = get_attribute_to_most_common_value_map('bank/train.csv', bank_
 (S_bank_test, _, labels_bank_test, _) = extract_ID3_input('bank/test.csv', bank_attributes, attribute_discretize_idx_to_thresh_map=idx_thresh_map, unknown_replacement_map=replacement_map)
 
 print('Bank data set decision tree error with unknown as the majority of the values of the same attribute:')
-errors_for_metrics(attributes_bank, attribute_possible_vals_bank, S_bank_train, labels_bank_train, S_bank_test, labels_bank_test, 16, verbose=False)
+errors_for_metrics(attributes_bank, attribute_possible_vals_bank, S_bank_train, labels_bank_train, S_bank_test, labels_bank_test, 16, verbose=True)
