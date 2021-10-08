@@ -256,7 +256,7 @@ class DecisionTree:
         return (best_attribute, best_Sv_dict, best_gain)
 
     @classmethod
-    def prediction_error(y_pred, y_actual):
+    def prediction_error(cls, y_pred, y_actual):
         # Determine prediction error 
         if len(y_pred) != len(y_actual):
             raise Exception('y_pred and y_actual are not the same length')
@@ -267,7 +267,7 @@ class DecisionTree:
         return error_count/len(y_pred)
 
     @classmethod
-    def extract_ID3_input(filename, attributes, attribute_discretize_idx_to_thresh_map={}, unknown_value='unknown', unknown_replacement_map={}):
+    def extract_ID3_input(cls, filename, attributes, attribute_discretize_idx_to_thresh_map={}, unknown_value='unknown', unknown_replacement_map={}):
         """ Extracts ID3 input given a csv file
 
         Args:
@@ -302,11 +302,11 @@ class DecisionTree:
                 S.append(example_dict)
         attribute_possible_vals_in_this_data = {}
         for a in attributes:
-            attribute_possible_vals_in_this_data[a] = list(DecisionTree.get_attribute_values(S, a))
+            attribute_possible_vals_in_this_data[a] = list(cls.get_attribute_values(S, a))
         return (S, attributes, labels, attribute_possible_vals_in_this_data)
 
     @classmethod
-    def get_attribute_discretize_idx_to_thresh_map(filename, attributes, attribute_idx_to_discretize):
+    def get_attribute_discretize_idx_to_thresh_map(cls, filename, attributes, attribute_idx_to_discretize):
     # Gets dictionary that specifies which attributes to discretize by index (AKA zero-based column numbers) as keys with the value being the treshold value to perform the discretization.
         discretize_dict = {}
         with open(filename, 'r') as f:
@@ -328,7 +328,7 @@ class DecisionTree:
         return attribute_discretize_idx_to_thresh_map
 
     @classmethod
-    def get_attribute_to_most_common_value_map(filename, attributes):
+    def get_attribute_to_most_common_value_map(cls, filename, attributes):
     # Gets a dictionary that maps from an attribute to the desired replacement value for a given 'unknown'.
         with open(filename, 'r') as f:
             values_dict = {}
