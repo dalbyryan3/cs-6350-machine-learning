@@ -1,5 +1,5 @@
 import unittest
-from decision_tree import DecisionTree, Node
+from decision_tree import DecisionTree
 
 class DecisionTreeTester(unittest.TestCase):
     # Helper and setup methods

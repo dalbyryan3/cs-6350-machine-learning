@@ -1,9 +1,13 @@
 import math
-from os import EX_CANTCREAT, name
-
 
 class Node:
     def __init__(self, name):
+        """ Create a Node that can be used to build trees. A Node can have multiple children and each child has an associated weight that defines the path connecting this Node to the child Node. 
+        i.e. These Nodes can create decision trees by having the name specify an attribute and the weights specifying a value of that attribute. A leaf node would have name that would be interpreted as a label.
+
+        Args:
+            name (object): Name that defines this node  
+        """
         self.name = name
         self.parent = None
         self.children = {} 
