@@ -1,4 +1,5 @@
 import math
+import statistics
 
 class Node:
     def __init__(self, name):
@@ -253,3 +254,99 @@ class DecisionTree:
                 best_gain = current_gain
         # Returns a tuple of the best attribute, a dictionary maps to a tuple of (Sv, labels_v) representing the subsets of S for splitting on the best attribute, and the best gain value
         return (best_attribute, best_Sv_dict, best_gain)
+
+    @classmethod
+    def prediction_error(y_pred, y_actual):
+        # Determine prediction error 
+        if len(y_pred) != len(y_actual):
+            raise Exception('y_pred and y_actual are not the same length')
+        error_count = 0
+        for i in range(len(y_pred)):
+            if y_pred[i] != y_actual[i]:
+                error_count +=1
+        return error_count/len(y_pred)
+
+    @classmethod
+    def extract_ID3_input(filename, attributes, attribute_discretize_idx_to_thresh_map={}, unknown_value='unknown', unknown_replacement_map={}):
+        """ Extracts ID3 input given a csv file
+
+        Args:
+            filename (str): File to extract ID3 input from 
+            attributes (list[str]): Names of attributes that sequentially correspond to columns in the data file 
+            attribute_discretize_idx_to_thresh_map (dict, optional): Dictionary that specifies which attributes to discretize by index (AKA zero-based column numbers) as keys with the value being the treshold value to perform the discretization. Defaults to {}.
+            unknown_value (str, optional): Name of unknown value in data to search for when replacing with different value. Defaults to 'unknown'.
+            unknown_replacement_map (dict, optional): A dictionary that maps from an attribute to the desired replacement value for a given 'unknown', if empty or can't find mapping for attribute of unknown value will perform no mapping. Defaults to {}.
+
+        Returns:
+            tuple: (S, attributes, labels, attribute_possible_vals_in_this_data) for usage with ID3. 
+        """
+        S = []
+        labels = []
+        with open(filename, 'r') as f:
+            for line in f:
+                terms = line.strip().split(',')
+                if len(terms) != (len(attributes)+1):
+                    raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
+                # Make dictionary mapping from attribute to value
+                example_dict = {}
+                for i in range(len(attributes)):
+                    a = attributes[i]
+                    value = terms[i]
+                    if value == unknown_value and a in unknown_replacement_map:
+                        value = unknown_replacement_map[a]
+                    if i in attribute_discretize_idx_to_thresh_map:
+                        threshold = attribute_discretize_idx_to_thresh_map[i]
+                        value = int(float(value)>threshold)
+                    example_dict[a] = value  
+                labels.append(terms[-1])
+                S.append(example_dict)
+        attribute_possible_vals_in_this_data = {}
+        for a in attributes:
+            attribute_possible_vals_in_this_data[a] = list(DecisionTree.get_attribute_values(S, a))
+        return (S, attributes, labels, attribute_possible_vals_in_this_data)
+
+    @classmethod
+    def get_attribute_discretize_idx_to_thresh_map(filename, attributes, attribute_idx_to_discretize):
+    # Gets dictionary that specifies which attributes to discretize by index (AKA zero-based column numbers) as keys with the value being the treshold value to perform the discretization.
+        discretize_dict = {}
+        with open(filename, 'r') as f:
+            for line in f:
+                terms = line.strip().split(',')
+                if len(terms) != (len(attributes)+1):
+                    raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
+                for i in range(len(attributes)):
+                    if i in attribute_idx_to_discretize:
+                        value = float(terms[i])
+                        if i in discretize_dict:
+                            discretize_dict[i].append(value)
+                        else:
+                            discretize_dict[i] = [value]
+
+        attribute_discretize_idx_to_thresh_map = {}
+        for idx in attribute_idx_to_discretize:
+            attribute_discretize_idx_to_thresh_map[idx] = statistics.median(discretize_dict[idx])
+        return attribute_discretize_idx_to_thresh_map
+
+    @classmethod
+    def get_attribute_to_most_common_value_map(filename, attributes):
+    # Gets a dictionary that maps from an attribute to the desired replacement value for a given 'unknown'.
+        with open(filename, 'r') as f:
+            values_dict = {}
+            for line in f:
+                terms = line.strip().split(',')
+                if len(terms) != (len(attributes)+1):
+                    raise Exception('Length of given attributes does not match parsed length of a line in filename to extract from (a line in filename should have the number of terms in attributes plus one (for the label))')
+                for i in range(len(attributes)):
+                    a = attributes[i]
+                    value = terms[i]
+                    if (value == 'unknown'):
+                        continue
+                    if a in values_dict:
+                        values_dict[a].append(value)
+                    else:
+                        values_dict[a] = [value]
+        attribute_to_most_common_value_map = {}
+        for a in values_dict:
+            a_values = values_dict[a]
+            attribute_to_most_common_value_map[a] = max(set(a_values), key=a_values.count)
+        return attribute_to_most_common_value_map
