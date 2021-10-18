@@ -28,16 +28,6 @@ idx_thresh_map = DecisionTree.get_attribute_discretize_idx_to_thresh_map('bank/t
 labels_bank_train = hw2_convert_labels(labels_bank_train)
 labels_bank_test = hw2_convert_labels(labels_bank_test)
 
-# # %%
-# T = 10
-# print('Number of boosting training epochs used for this model: {0}'.format(T))
-# model = AdaBoost(attribute_possible_vals_bank)
-# model.train(S_bank_train, attributes_bank, labels_bank_train, T)
-# train_pred = model.predict(S_bank_train)
-# test_pred = model.predict(S_bank_test)
-# train_err = DecisionTree.prediction_error(train_pred, labels_bank_train)
-# test_err = DecisionTree.prediction_error(test_pred, labels_bank_test)
-
 # %% 
 # 2a- LONG RUNNING
 Tmax = 500 
