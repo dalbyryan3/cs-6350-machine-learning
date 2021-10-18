@@ -1,7 +1,10 @@
 import sys
+
+from matplotlib.pyplot import cla
 sys.path.insert(1, '../')
 from DecisionTree.decision_tree import DecisionTree
 import numpy as np
+import random
 
 class DecisionStump:
     def __init__(self, attribute_possible_vals):
@@ -41,7 +44,7 @@ class DecisionStump:
 
 class AdaBoost:
     def __init__(self, attribute_possible_vals):
-        """ Creates AdaBoosted decision stump based model object that to train and predict. Takes a description of possible attributes and their possible values that can be trained and then used for prediction.
+        """ Creates AdaBoosted binary decision stump based model object that to train and predict. Takes a description of possible attributes and their possible values that can be trained and then used for prediction.
 
         Args:
             attribute_possible_vals (dict of str: list[str]): A dictionary mapping from all possible attributes to a list containing every possible value for the attribute
@@ -50,12 +53,12 @@ class AdaBoost:
         self.attribute_possible_vals = attribute_possible_vals
 
     def train(self, S, attributes, labels, T):
-        """ Trains an AdaBoosted decision stump model
+        """ Trains an AdaBoosted binary decision stump model
 
         Args:
             S (list of dict[str: str]): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
             attributes (list[str]): A list containing each possible attribute value 
-            labels (list): A list of the labels for each example in S. Must be same order and length as S. 
+            labels (list): A list of the labels for each example in S. Must be same order and length as S. Labels must be binary, either -1 or +1.
             S_weights (list[float]): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1.
             T (int) the number of epochs to run AdaBoost.
         """
@@ -95,9 +98,73 @@ class AdaBoost:
         return np.sign(alpha_t_hS_sum).tolist()
 
 
-class BaggedTrees:
-    def __init__(self) -> None:
-        pass
+class BaggedDecisionTree:
+    def __init__(self, attribute_possible_vals):
+        """ 
+
+        Args:
+            attribute_possible_vals (dict of str: list[str]): A dictionary mapping from all possible attributes to a list containing every possible value for the attribute
+        """
+        self.decision_tree_list = []
+        self.attribute_possible_vals = attribute_possible_vals
+
+    def train(self, S, attributes, labels, T):
+        """ Trains a binary bagged decision tree with T decision trees built from out-of-bag samples
+
+        Args:
+            S (list of dict[str: str]): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
+            attributes (list[str]): A list containing each possible attribute value 
+            labels (list): A list of the labels for each example in S. Must be same order and length as S. Labels must be binary, either -1 or +1.
+            S_weights (list[float]): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1.
+            T (int) the number of decision trees to build from out-of-bag samples.
+        """
+        self.decision_tree_list = []
+        for t in range(T):
+            self.train_one_extra_tree(S, attributes, labels)
+
+    def train_one_extra_tree(self, S, attributes, labels):
+        """ Trains one extra decision tree built from out-of-bag samples. Can be used to test what happens when T is grown without having to retrain an extensive number of trees repetitively.
+
+        Args:
+            S (list of dict[str: str]): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
+            attributes (list[str]): A list containing each possible attribute value 
+            labels (list): A list of the labels for each example in S. Must be same order and length as S. Labels must be binary, either -1 or +1.
+            S_weights (list[float]): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1.
+        """
+        S_sampled, labels_sampled = BaggedDecisionTree._uniform_sample_with_replacement(S, labels)
+        tree = DecisionTree(self.attribute_possible_vals)
+        tree.train(S_sampled, attributes, labels_sampled)
+        self.decision_tree_list.append(tree)
+
+    @classmethod
+    def _uniform_sample_with_replacement(cls, S, labels):
+        S_sampled = []
+        labels_sampled = []
+        m = len(S)
+        zipped_data = list(zip(S, labels))
+        for i in range(m):
+            s,l = random.choice(zipped_data)
+            S_sampled.append(s)
+            labels_sampled.append(l)
+        return S_sampled, labels_sampled
+
+    def predict(self, S):
+        """ Predicts using all decision trees built from out-of-bag samples by taking votes from each. If equal number of votes for each binary class will select the positive(+1) class.
+
+        Args:
+            S (list of dict): A list with each element being a dictionary which represents an example. This dictionary maps from each possible attribute to the value of the attribute for the example. 
+
+        Returns:
+            List of predicted labels corresponding to each example given in S.
+        """
+        pred_sum = np.zeros_like(S)
+        for tree in self.decision_tree_list:
+            pred_sum += np.array(tree.predict(S))
+        result = np.sign(pred_sum)
+        # Replace all with equal votes (sign returns 0) with positive class
+        result[result == 0] = 1
+        return result.tolist()
+
 
 class RandomForest:
     def __init__(self) -> None:
