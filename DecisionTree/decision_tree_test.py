@@ -28,6 +28,7 @@ class DecisionTreeTester(unittest.TestCase):
             self.build_example('Overcast','Hot', 'Normal', 'Weak'),
             self.build_example('Rainy','Medium', 'High', 'Strong')
         ]
+        self.weights = [1/len(self.S)] * len(self.S)
     def build_example(self, outlook, temperature, humidity, wind):
         # Build example
         return {self.attributes[0]:outlook, self.attributes[1]:temperature,self.attributes[2]:humidity, self.attributes[3]:wind}
@@ -35,23 +36,23 @@ class DecisionTreeTester(unittest.TestCase):
         
     # Testing methods
     def test_entropy(self):
-        self.assertAlmostEqual(DecisionTree.entropy(self.labels), 0.652, places=3)
+        self.assertAlmostEqual(DecisionTree.entropy(self.labels, self.weights), 0.652, places=3)
     def test_majority_error(self):
-        self.assertAlmostEqual(DecisionTree.majority_error(self.labels), 0.357, places=3)
+        self.assertAlmostEqual(DecisionTree.majority_error(self.labels, self.weights), 0.357, places=3)
     def test_gini_index(self):
-        self.assertAlmostEqual(DecisionTree.gini_index(self.labels), 0.459, places=3)
+        self.assertAlmostEqual(DecisionTree.gini_index(self.labels, self.weights), 0.459, places=3)
     def test_get_attribute_values(self):
         self.assertSetEqual(DecisionTree.get_attribute_values(self.S, 'Outlook'), {'Sunny','Overcast','Rainy'})
         self.assertSetEqual(DecisionTree.get_attribute_values(self.S, 'Temperature'), {'Hot','Medium','Cold'})
         self.assertSetEqual(DecisionTree.get_attribute_values(self.S, 'Humidity'), {'High','Normal'})
         self.assertSetEqual(DecisionTree.get_attribute_values(self.S, 'Wind'), {'Strong','Weak'})
     def test_get_value_subset(self):
-        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Outlook').keys()), {'Sunny','Overcast','Rainy'})
-        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Temperature').keys()), {'Hot','Medium','Cold'})
-        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Humidity').keys()), {'High','Normal'})
-        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Wind').keys()), {'Strong','Weak'})
+        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Outlook', self.weights).keys()), {'Sunny','Overcast','Rainy'})
+        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Temperature', self.weights).keys()), {'Hot','Medium','Cold'})
+        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Humidity', self.weights).keys()), {'High','Normal'})
+        self.assertSetEqual(set(DecisionTree.get_value_subset(self.S, self.labels, 'Wind',self.weights).keys()), {'Strong','Weak'})
 
-        S_outlook = DecisionTree.get_value_subset(self.S, self.labels, 'Outlook')
+        S_outlook = DecisionTree.get_value_subset(self.S, self.labels, 'Outlook', self.weights)
         sunny_label_vals = S_outlook['Sunny'][1]
         self.assertListEqual(sunny_label_vals, [False, False, False, True, True])
         overcast_label_vals = S_outlook['Overcast'][1]
@@ -60,23 +61,23 @@ class DecisionTreeTester(unittest.TestCase):
         self.assertListEqual(rainy_label_vals, [True, True, False, True, False])
 
     def test_gain(self):
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook')[0], 0.171, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature')[0], 0.020, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', metric=DecisionTree.entropy)[0], 0.105, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', metric=DecisionTree.entropy)[0], 0.0334, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook', self.weights)[0], 0.171, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature', self.weights)[0], 0.020, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', self.weights, metric=DecisionTree.entropy)[0], 0.105, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', self.weights, metric=DecisionTree.entropy)[0], 0.0334, places=3)
 
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook', metric=DecisionTree.majority_error)[0], 0.0714, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature', metric=DecisionTree.majority_error)[0], 0.00, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', metric=DecisionTree.majority_error)[0], 0.0714, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', metric=DecisionTree.majority_error)[0], 0.00, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook', self.weights, metric=DecisionTree.majority_error)[0], 0.0714, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature', self.weights, metric=DecisionTree.majority_error)[0], 0.00, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', self.weights,  metric=DecisionTree.majority_error)[0], 0.0714, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', self.weights, metric=DecisionTree.majority_error)[0], 0.00, places=3)
 
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook', metric=DecisionTree.gini_index)[0], 0.116, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature', metric=DecisionTree.gini_index)[0], 0.019, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', metric=DecisionTree.gini_index)[0], 0.092, places=3)
-        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', metric=DecisionTree.gini_index)[0], 0.031, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Outlook', self.weights,  metric=DecisionTree.gini_index)[0], 0.116, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Temperature', self.weights, metric=DecisionTree.gini_index)[0], 0.019, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Humidity', self.weights, metric=DecisionTree.gini_index)[0], 0.092, places=3)
+        self.assertAlmostEqual(DecisionTree.gain(self.S, self.labels, 'Wind', self.weights, metric=DecisionTree.gini_index)[0], 0.031, places=3)
 
     def test_find_best_attribute(self):
-        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes)
+        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes, self.weights)
         self.assertEqual(best_attr, 'Outlook')
         self.assertAlmostEqual(best_gain, 0.171, places=3)
         sunny_label_vals = Sv_dict['Sunny'][1]
@@ -86,11 +87,11 @@ class DecisionTreeTester(unittest.TestCase):
         rainy_label_vals = Sv_dict['Rainy'][1]
         self.assertListEqual(rainy_label_vals, [True, True, False, True, False])
 
-        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes, metric=DecisionTree.majority_error)
+        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes, self.weights, metric=DecisionTree.majority_error)
         self.assertTrue(best_attr == 'Outlook' or best_attr =='Humidity')
         self.assertAlmostEqual(best_gain, 0.0714, places=3)
 
-        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes, metric=DecisionTree.gini_index)
+        (best_attr, Sv_dict, best_gain) = DecisionTree.find_best_attribute(self.S, self.labels, self.attributes, self.weights, metric=DecisionTree.gini_index)
         self.assertEqual(best_attr, 'Outlook')
         self.assertAlmostEqual(best_gain, 0.116, places=3)
         sunny_label_vals = Sv_dict['Sunny'][1]

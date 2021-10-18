@@ -40,7 +40,7 @@ class DecisionTree:
         self.attribute_possible_vals = attribute_possible_vals
         self.root = None
 
-    def train(self, S, attributes, labels, metric=None, max_depth=None):
+    def train(self, S, attributes, labels, metric=None, max_depth=None, weights=None):
         """ Trains decision tree on labelled data
 
         Args:
@@ -49,11 +49,16 @@ class DecisionTree:
             labels (list): A list of the labels for each example in S. Must be same order and length as S. 
             metric (Callable[[list], float], optional): Callable function representing the metric (heuristic) to use to determine how to split decision tree when training. Defaults to None which will use entropy as the heuristic.
             max_depth (int, optional): Maximum depth of decision tree, if examples not perfectly split and max_depth is hit will choose most common class as leaf node. Defaults to None which means tree depth will not be limited.
+            weights (list[float], optional): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1. Defaults to None which means weights will be equal for all examples.
 
         Returns:
             Node: Root node of the Decision tree. 
         """
-        self.root = self.ID3(S, attributes, labels, metric=metric, max_depth=max_depth)
+        # If weights are None then set to be equal for all examples
+        N = len(S)
+        if weights is None: # If no weights for examples are given, weight each equally
+           weights = [1/N] * N 
+        self.root = self.ID3(S, attributes, labels, weights, metric=metric, max_depth=max_depth)
         return self.root
     
     def predict(self, S):
@@ -83,44 +88,44 @@ class DecisionTree:
                     current_node = current_node.children[example_val]
         return labels
         
-    def ID3(self, S, attributes, labels, metric=None, max_depth=None):
+    def ID3(self, S, attributes, labels, weights, metric=None, max_depth=None):
+        # Standard ID3 algorithm
         if len(S) <= 0 or len(labels) != len(S):
             raise Exception('Must have at least a single example and label and they must be the be same length')
-
         # All examples have same label:
         if(labels.count(labels[0]) == len(labels)):
-            return Node(labels[0])# leaf node with the label
+            return Node(labels[0]) # leaf node with the label
         # Attributes empty:
         if(len(attributes) <= 0):
-            possible_labels = set(labels)
-            most_common_label = max(possible_labels, key=labels.count)
+            most_common_label = DecisionTree._find_most_weighted_label(labels, weights)
             return Node(most_common_label)
         # Otherwise:
-        (best_attribute, Sv_dict, _) = self.find_best_attribute(S, labels, attributes, metric=metric)
+        (best_attribute, Sv_dict, _) = self.find_best_attribute(S, labels, attributes, weights, metric=metric)
         root_node = Node(best_attribute)
         current_depth = self.number_of_attribute_splits(attributes)
+
+        # If next depth is max depth then we set flag to stop tree growth
         stop_tree_growth = False
         if(max_depth is not None and current_depth+1 >= max_depth):
-            # If next depth is max depth then we set flag to stop tree growth
-            stop_tree_growth = True
+            stop_tree_growth = True 
+
         for value in self.attribute_possible_vals[best_attribute]:
             if (value not in Sv_dict):
-                possible_labels = set(labels)
-                most_common_label = max(possible_labels, key=labels.count)
+                most_common_label = DecisionTree._find_most_weighted_label(labels, weights) 
                 root_node.add_child(Node(most_common_label), value)
             else:
                 Sv_tuple = Sv_dict[value]
                 Sv = Sv_tuple[0]
                 labels_v = Sv_tuple[1]
+                weights_v = Sv_tuple[2]
                 if (stop_tree_growth):
                     # To stop tree growth we set the labels to the most common value so next recursion returns Node(most common value)
-                    possible_labels = set(labels_v)
-                    most_common_label = max(possible_labels, key=labels_v.count)
+                    most_common_label = DecisionTree._find_most_weighted_label(labels_v, weights_v)
                     labels_v = [most_common_label] * len(labels_v)
                 reduced_attributes = set(attributes) - set([best_attribute])
-                root_node.add_child(self.ID3(Sv, reduced_attributes, labels_v, metric=metric, max_depth=max_depth), value)
+                root_node.add_child(self.ID3(Sv, reduced_attributes, labels_v, weights_v, metric=metric, max_depth=max_depth), value)
         return root_node
-
+    
     def number_of_attribute_splits(self, current_attributes):
         return len(self.attribute_possible_vals.keys()) - len(current_attributes)
 
@@ -161,50 +166,81 @@ class DecisionTree:
         return tree_str
 
     @classmethod
-    def entropy(cls, labels):
+    def _find_most_weighted_label(cls, labels, weights):
+        weighted_sum_dict = {}
+        for i, w in enumerate(weights):
+            label = labels[i]
+            if label in weighted_sum_dict:
+                weighted_sum_dict[label] += w
+            else:
+                weighted_sum_dict[label] = w
+        most_common_label = max(weighted_sum_dict, key=weighted_sum_dict.get)
+        return most_common_label
+
+    @classmethod
+    def _normalize_weights(cls, weights):
+        norm_const = 1.0 / sum(weights)
+        norm_weights = [i * norm_const for i in weights]
+        return norm_weights
+
+    @classmethod
+    def entropy(cls, labels, weights):
         N = len(labels)
+        if len(weights) != len(labels):
+            raise Exception('Weights must be same length as labels. Weights length: {0}, labels length: {1}'.format(len(weights), len(labels)))
         possible_labels = set(labels)
         entropy = 0
+        # Note will normalize weights so it is possible to split weighted examples into subsets
+        norm_weights = cls._normalize_weights(weights)
         for label in possible_labels:
-            label_count = labels.count(label)
-            label_prob = label_count/N
+            label_weights = [w for i, w in enumerate(norm_weights) if labels[i] == label]
+            label_prob = sum(label_weights) 
             if(label_prob != 0):
                 entropy += -label_prob*math.log(label_prob)
         return entropy
 
     @classmethod
-    def majority_error(cls, labels):
+    def majority_error(cls, labels, weights):
         N = len(labels)
+        if len(weights) != len(labels):
+            raise Exception('Weights must be same length as labels. Weights length: {0}, labels length: {1}'.format(len(weights), len(labels)))
         possible_labels = set(labels)
         most_common_label = max(possible_labels, key=labels.count)
-        non_most_common_count = 0
         non_most_common_labels = possible_labels - {most_common_label}
+        majority_err = 0
+        # Note will normalize weights so it is possible to split weighted examples into subsets
+        norm_weights = cls._normalize_weights(weights)
         for label in non_most_common_labels:
-            non_most_common_count += labels.count(label)
-        return non_most_common_count/N
+            label_weights = [w for i, w in enumerate(norm_weights) if labels[i] == label]
+            majority_err += sum(label_weights)
+        return majority_err 
 
     @classmethod
-    def gini_index(cls, labels):
+    def gini_index(cls, labels, weights):
         N = len(labels)
+        if len(weights) != len(labels):
+            raise Exception('Weights must be same length as labels. Weights length: {0}, labels length: {1}'.format(len(weights), len(labels)))
         possible_labels = set(labels)
         label_prob_sum = 0
+        # Note will normalize weights so it is possible to split weighted examples into subsets
+        norm_weights = cls._normalize_weights(weights)
         for label in possible_labels:
-            label_count = labels.count(label)
-            label_prob = label_count/N
+            label_weights = [w for i, w in enumerate(norm_weights) if labels[i] == label]
+            label_prob = sum(label_weights) 
             label_prob_sum += label_prob**2 
         return 1-label_prob_sum
 
     @classmethod
-    def gain(cls, S, labels, attribute, metric=None):
+    def gain(cls, S, labels, attribute, weights, metric=None):
+        N = len(S)
         if metric is None:
             metric = cls.entropy
-        N = len(S)
-        S_metric = metric(labels)
+        S_metric = metric(labels, weights)
         expected_metric_sum = 0
-        Sv_dict = cls.get_value_subset(S, labels, attribute)
-        for Sv_key in Sv_dict.keys():
-            (Sv, labels_v) = Sv_dict[Sv_key]
-            expected_metric_sum += (len(Sv)/N) * metric(labels_v)
+        Sv_dict = cls.get_value_subset(S, labels, attribute, weights)
+        for Sv_key in Sv_dict.keys(): # Loop through all examples by value (each Sv_key is a different value of attribute)
+            (Sv, labels_v, weights_v) = Sv_dict[Sv_key]
+            expected_metric_sum += (len(Sv)/N) * metric(labels_v, weights_v)
         # Returns gain value and a dictionary that given a value of the attribute maps to a tuple of (Sv, labels_v) representing the subset of S all containing the same value of the attribute
         gain = S_metric - expected_metric_sum
         # Round to zero to prevent floating point errors compounding
@@ -222,31 +258,33 @@ class DecisionTree:
         return attribute_vals
 
     @classmethod
-    def get_value_subset(cls, S, labels, attribute):
+    def get_value_subset(cls, S, labels, attribute, weights):
         if (len(S) != len(labels)):
             raise Exception('S must be the same length as corresponding labels')
+        if (len(weights) != len(labels)):
+            raise Exception('Weights must be the same length as corresponding labels')
         Sv_dict = {}
         for i in range(len(S)):
             example = S[i]
             label = labels[i]
+            weight = weights[i]
             ex_val = example[attribute]
             if ex_val in Sv_dict:
                 Sv_dict[ex_val][0].append(example)
                 Sv_dict[ex_val][1].append(label)
+                Sv_dict[ex_val][2].append(weight)
             else:
-                Sv_dict[ex_val] = ([example],[label])
+                Sv_dict[ex_val] = ([example],[label],[weight])
         # a dictionary that given a value of the attribute maps to a tuple of (Sv, labels_v) representing the subset of S all containing the same value of the attribute
         return Sv_dict
 
     @classmethod
-    def find_best_attribute(cls, S, labels, attributes, metric=None):
-        if metric is None:
-            metric = cls.entropy
+    def find_best_attribute(cls, S, labels, attributes, weights, metric=None):
         best_Sv_dict = None 
         best_attribute = None
         best_gain = 0
         for current_attribute in attributes:
-            (current_gain, current_Sv_dict) = cls.gain(S, labels, current_attribute, metric=metric)
+            (current_gain, current_Sv_dict) = cls.gain(S, labels, current_attribute, weights, metric=metric)
             # Will choose best gain based on this equality, if multiple gains of same value will arbitrarily choose one
             if(current_gain >= best_gain):
                 best_Sv_dict = current_Sv_dict
