@@ -46,7 +46,7 @@ class AdaBoost:
         Args:
             attribute_possible_vals (dict of str: list[str]): A dictionary mapping from all possible attributes to a list containing every possible value for the attribute
         """
-        self.alpha_t_h_list = []
+        self.stump_alpha_t_list = []
         self.attribute_possible_vals = attribute_possible_vals
 
     def train(self, S, attributes, labels, T):
@@ -59,7 +59,7 @@ class AdaBoost:
             S_weights (list[float]): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1.
             T (int) the number of epochs to run AdaBoost.
         """
-        self.alpha_t_h_list = []
+        self.stump_alpha_t_list = []
         y = np.array(labels)
         m = len(S)
         D = np.full(m,1/m)
@@ -67,16 +67,13 @@ class AdaBoost:
             # Get a by creating stump then training it to create a hypothesis
             stump = DecisionStump(self.attribute_possible_vals)
             stump.train(S, attributes, labels, D.tolist())
-            # stump.tree.visualize_tree(should_print=True)
-            h = lambda S: np.array(stump.predict(S))
-            hS = h(S) 
+            hS = np.array(stump.predict(S))
             epsilon_t = 0.5 - 0.5 * np.sum(D * y * hS)
             if (epsilon_t >= 0.5):
                 raise Exception('Hypothesis weighted error was not less than chance, weighted error was: {0}'.format(epsilon_t))
             alpha_t = 0.5 * np.log((1-epsilon_t)/epsilon_t)
-            alpha_t_h = lambda S: alpha_t * h(S) 
             # Store this to use for prediction 
-            self.alpha_t_h_list.append(alpha_t_h)
+            self.stump_alpha_t_list.append((stump, alpha_t))
 
             # Update D
             D = D * np.exp(-alpha_t * y * hS)
@@ -93,8 +90,8 @@ class AdaBoost:
             List of predicted labels corresponding to each example given in S.
         """
         alpha_t_hS_sum = np.zeros_like(S)
-        for alpha_t_h in self.alpha_t_h_list:
-            alpha_t_hS_sum = alpha_t_hS_sum + alpha_t_h(S)
+        for stump, alpha_t in self.stump_alpha_t_list:
+            alpha_t_hS_sum += (alpha_t * np.array(stump.predict(S)))
         return np.sign(alpha_t_hS_sum).tolist()
 
 
