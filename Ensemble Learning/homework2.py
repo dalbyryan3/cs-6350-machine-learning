@@ -71,32 +71,35 @@ for T in Tvals:
     stump_test_err = DecisionTree.prediction_error(stump_test_pred, labels_bank_test)
     stump_test_err_vals.append(stump_test_err)
 
-with open('objs.pkl', 'wb') as f:
-    pickle.dump([train_err_vals, test_err_vals, stump_train_err_vals, stump_test_err_vals], f)
+# %%
+# 2a- Saving long-run data
+with open('hw2_2a.pkl', 'wb') as f:
+    pickle.dump([train_err_vals, test_err_vals, stump_train_err_vals, stump_test_err_vals, models], f)
 
 # %%
+# 2a- Loading long-run data
+with open('hw2_2a.pkl', 'rb') as f:
+    train_err_vals, test_err_vals, stump_train_err_vals, stump_test_err_vals, models = pickle.load(f)
+# %%
 # 2a- Plotting
-with open('objs.pkl', 'rb') as f:
-    train_err_vals, test_err_vals, stump_train_err_vals, stump_test_err_vals = pickle.load(f)
 # First figure
 plt.figure()
 plt.plot(train_err_vals, label='Training Error')
 plt.plot(test_err_vals, label='Test Error')
 plt.legend()
-plt.title('Adaboost Prediction Errors')
+plt.title('AdaBoost Prediction Errors')
 plt.ylabel('Error')
 plt.xlabel('Number of Hypothesis Used (T)')
 plt.show()
 
 # Second figure
 plt.figure()
-plt.plot(stump_train_err_vals, label='Individual Stump Training Error')
-plt.plot(stump_test_err_vals, label='Individual Stump Test Error')
+plt.plot(stump_train_err_vals, '.', label='Individual Stump Training Error', linewidth=0.7)
+plt.plot(stump_test_err_vals, '.', label='Individual Stump Test Error', linewidth=0.7)
 plt.legend()
-plt.title('Adaboost Prediction Errors of Decision Stump Learned at T')
+plt.title('AdaBoost Prediction Errors of Decision Stump Learned at T')
 plt.ylabel('Error')
 plt.xlabel('Number of Hypothesis Used (T)')
 plt.show()
-# %%
 
 # %%
