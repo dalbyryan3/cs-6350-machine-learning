@@ -1,4 +1,5 @@
 import math
+import random 
 import statistics
 
 class Node:
@@ -40,7 +41,7 @@ class DecisionTree:
         self.attribute_possible_vals = attribute_possible_vals
         self.root = None
 
-    def train(self, S, attributes, labels, metric=None, max_depth=None, weights=None):
+    def train(self, S, attributes, labels, metric=None, max_depth=None, weights=None, random_forest_attribute_sampling=False, random_forest_sampling_size=None):
         """ Trains decision tree on labelled data
 
         Args:
@@ -50,6 +51,8 @@ class DecisionTree:
             metric (Callable[[list], float], optional): Callable function representing the metric (heuristic) to use to determine how to split decision tree when training. Defaults to None which will use entropy as the heuristic.
             max_depth (int, optional): Maximum depth of decision tree, if examples not perfectly split and max_depth is hit will choose most common class as leaf node. Defaults to None which means tree depth will not be limited.
             weights (list[float], optional): Weights (probabilities) associated with each training example. Must be same length as labels and values should sum to 1. Defaults to None which means weights will be equal for all examples.
+            random_forest_attribute_sampling (bool, optional): If random forest based attribute subsampling should be used for each split. This means only a "small" subset of attributes at a split are considered as candidates to split on. Defaults to False which means all attributes are considered for each split.
+            random_forest_sampling_size (int, optional): If random forest based attribute subsampling is indicated to be used used for each split will try to use sample this subset size of attributes (if less attributes than number gives will use all attributes). Defaults to None which means the ceiling of the current attribute size / 5 is used (only if random forest based attribute subsampling is indicated to be used used).
 
         Returns:
             Node: Root node of the Decision tree. 
@@ -58,7 +61,7 @@ class DecisionTree:
         N = len(S)
         if weights is None: # If no weights for examples are given, weight each equally
            weights = [1/N] * N 
-        self.root = self.ID3(S, attributes, labels, weights, metric=metric, max_depth=max_depth)
+        self.root = self.ID3(S, attributes, labels, weights, metric=metric, max_depth=max_depth, random_forest_attribute_sampling=random_forest_attribute_sampling, random_forest_sampling_size=random_forest_sampling_size)
         return self.root
     
     def predict(self, S):
@@ -88,19 +91,31 @@ class DecisionTree:
                     current_node = current_node.children[example_val]
         return labels
         
-    def ID3(self, S, attributes, labels, weights, metric=None, max_depth=None):
+    def ID3(self, S, attributes, labels, weights, metric=None, max_depth=None, random_forest_attribute_sampling = False, random_forest_sampling_size=None):
         # Standard ID3 algorithm
         if len(S) <= 0 or len(labels) != len(S):
             raise Exception('Must have at least a single example and label and they must be the be same length')
+
         # All examples have same label:
         if(labels.count(labels[0]) == len(labels)):
             return Node(labels[0]) # leaf node with the label
+
         # Attributes empty:
         if(len(attributes) <= 0):
             most_common_label = DecisionTree._find_most_weighted_label(labels, weights)
             return Node(most_common_label)
-        # Otherwise:
-        (best_attribute, Sv_dict, _) = self.find_best_attribute(S, labels, attributes, weights, metric=metric)
+
+        # Select attributes if specified 
+        selected_attributes = attributes
+        if(random_forest_attribute_sampling):
+            if random_forest_sampling_size is None: 
+                G = math.ceil(len(attributes)/5) # Will consider dividing by 5 and rounding up a "sufficiently" small subset of the attributes 
+            else:
+                G = random_forest_sampling_size if random_forest_sampling_size < len(attributes) else len(attributes)
+            selected_attributes = random.sample(attributes, G)
+
+        # If examples have different labels and attributes are not empty:
+        (best_attribute, Sv_dict, _) = self.find_best_attribute(S, labels, selected_attributes, weights, metric=metric)
         root_node = Node(best_attribute)
         current_depth = self.number_of_attribute_splits(attributes)
 
