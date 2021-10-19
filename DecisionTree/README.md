@@ -18,5 +18,5 @@ Contains unit testing with simple decision tree example.
 
 ## homework1.py
 Uses `DecisionTree` to train a decision tree on a bank and car dataset as required in homework 1.
-This file is meant to be run interactively running cells sequentially and can even be converted to a Jupyter notebook if (cells are denotes by # %%).
+This file is meant to be run interactively running cells sequentially and can even be converted to a Jupyter notebook if (cells are denoted by # %%).
 The file can be run as a .py file though.
