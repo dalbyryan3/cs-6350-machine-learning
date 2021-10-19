@@ -1,10 +1,11 @@
+# Libraries
 import sys
-
-from matplotlib.pyplot import cla
-sys.path.insert(1, '../')
-from DecisionTree.decision_tree import DecisionTree
 import numpy as np
 import random
+
+# Personal Libraries
+sys.path.insert(1, '../')
+from DecisionTree.decision_tree import DecisionTree
 
 class DecisionStump:
     def __init__(self, attribute_possible_vals):
@@ -100,7 +101,7 @@ class AdaBoost:
 
 class BaggedDecisionTree:
     def __init__(self, attribute_possible_vals):
-        """ Build binary bagged decision tree object. 
+        """ Builds a binary bagged decision tree object. 
 
         Args:
             attribute_possible_vals (dict of str: list[str]): A dictionary mapping from all possible attributes to a list containing every possible value for the attribute

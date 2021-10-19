@@ -1,6 +1,9 @@
 # %% 
-from decision_tree import DecisionTree
+# Libraries
 import statistics
+
+# Personal Libraries 
+from decision_tree import DecisionTree
 
 # %%
 # General functions

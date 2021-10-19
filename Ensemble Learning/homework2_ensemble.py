@@ -1,11 +1,14 @@
 # %%
-from ensemble import AdaBoost, BaggedDecisionTree, RandomForest
+# Libraries
 import sys
-sys.path.insert(1, '../')
-from DecisionTree.decision_tree import DecisionTree
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+
+# Personal libraries
+from ensemble import AdaBoost, BaggedDecisionTree, RandomForest
+sys.path.insert(1, '../')
+from DecisionTree.decision_tree import DecisionTree
 
 # %%
 # General functions

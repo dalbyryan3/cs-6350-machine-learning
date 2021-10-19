@@ -1,4 +1,7 @@
+# Libraries
 import unittest
+
+# Personal Libraries 
 from decision_tree import DecisionTree
 
 class DecisionTreeTester(unittest.TestCase):
