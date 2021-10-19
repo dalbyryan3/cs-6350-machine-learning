@@ -6,11 +6,14 @@ This is an implementation of various ensemble methods using binary decision tree
 A `DecisionStump` is essentially a light wrapper around a `DecisionTree` with a max depth of 1.
 See docstring for more information as well as the README.md in the DecisionTree directory.
 ## AdaBoost
-AdaBoosted binary decision stump based model for training and prediction. See docstring for more information.
+AdaBoosted binary decision stump based model for training and prediction. 
+See docstring for more information.
 ## BaggedDecisionTree
-Bagged binary decision tree model built from out-of-bag samples for training and prediction. See docstring for more information.
+Bagged binary decision tree model built from out-of-bag samples for training and prediction. 
+See docstring for more information.
 ## RandomForest
-Random forest with binary decision trees built from out-of-bag samples and using random small attribute subsets as candidates to split on. See docstring for more information.
+Random forest with binary decision trees built from out-of-bag samples and using random small attribute subsets as candidates to split on. 
+See docstring for more information.
 
 ## homework2_ensemble.py
 Uses `AdaBoost`, `BaggedDecisionTree`, and `RandomForest` ensemble methods to complete the tasks outlined in homework 2 part 2 questions 2 the bank dataset.
