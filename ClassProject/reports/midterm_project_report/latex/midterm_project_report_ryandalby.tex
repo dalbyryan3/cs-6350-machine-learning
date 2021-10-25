@@ -1,0 +1,71 @@
+\documentclass[11pt]{article}
+\usepackage{euscript}
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{epsfig}
+\usepackage{xspace}
+\usepackage{color}
+\usepackage{url}
+\usepackage[nodayofweek]{datetime}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{verbatimbox}
+
+
+%%%%%%%  For drawing trees  %%%%%%%%%
+\usepackage{tikz}
+\usetikzlibrary{calc, shapes, backgrounds}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\textheight}{9in}
+\setlength{\topmargin}{-0.600in}
+\setlength{\headheight}{0.2in}
+\setlength{\headsep}{0.250in}
+\setlength{\footskip}{0.5in}
+\flushbottom
+\setlength{\textwidth}{6.5in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\columnsep}{2pc}
+\setlength{\parindent}{1em}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newdate{date}{26}{10}{2021}
+\title{
+    Midterm Project Report
+
+    \large{
+    CS 6350 Machine Learning
+    }  
+    
+}
+\author{
+    Ryan Dalby
+}
+\date{\displaydate{date}}
+
+\begin{document}
+\maketitle
+
+\section*{Progress}
+\subsection*{Overview}
+First I attempted to use SGD logistic regression, but found more consistent convergence results using lbfgs solver. (occasionally did not converge to good optima)
+Then plotted learning curve and saw that the model suffers from high bias meaning that we would benefit from a more powerful model. Exploring nonlienar etc.
+
+Then tried SVM linear, got similar results, used a different SVM kernel got results...  
+
+
+
+\subsection*{Data Preprocessing}
+\subsection*{Logistic Regression}
+\subsection*{Support Vector Machine Classification}
+
+\section*{Next Steps}
+Try optimizing hyperparameter when using SGD, deep learning, ensemble methods.
+
+
+% \bibliographystyle{abbrv}
+% \bibliography{}
+
+\end{document}
