@@ -26,6 +26,11 @@ def output_kaggle_prediction_and_save_model(model, X_final_test, final_idxs):
         pickle.dump(model,f)
     return filename
 
+def load_model(filename):
+    with open(models_path / '{0}'.format(filename+'.pkl'),'rb') as f:
+        return pickle.load(f)
+
+
 def encode_data(X, categorical_cols_idxs, enc):
     X_categorical = X[:,categorical_cols_idxs]
     X_non_categorical = np.delete(X, categorical_cols_idxs, axis=1)
@@ -37,12 +42,12 @@ def evaluate_model(model, X_train, y_train, X_test, y_test, model_name_str='', s
     # Evaluates model in terms of test and train accuracy 
     # Train data evaluation
     y_train_pred = model.predict(X_train)
-    train_acc = model.score(X_train, y_train)
+    train_acc = metrics.accuracy_score(y_train, y_train_pred)
     train_auc = metrics.roc_auc_score(y_train, y_train_pred)
 
     # Test data evaluation
     y_test_pred = model.predict(X_test)
-    test_acc = model.score(X_test, y_test)
+    test_acc = metrics.accuracy_score(y_test, y_test_pred)
     test_auc = metrics.roc_auc_score(y_test, y_test_pred)
 
     if should_print:
@@ -81,10 +86,17 @@ categorical_cols_idxs = [loaded_train_data.columns.get_loc(c) for c in categoric
 enc = preprocessing.OneHotEncoder(sparse=False, dtype=int)
 enc.fit(np.concatenate((X_full_train[:,categorical_cols_idxs],X_final_test[:,categorical_cols_idxs]), axis=0))
 
+# One hot encoding 
 X_full_train_enc = encode_data(X_full_train, categorical_cols_idxs, enc)
 X_final_test_enc = encode_data(X_final_test, categorical_cols_idxs, enc)
 
-X_train, X_test, y_train, y_test = model_selection.train_test_split(X_full_train_enc, y_full_train, test_size=0.25)
+# Make zero mean and unit variance 
+data_scaler = preprocessing.StandardScaler()
+# Only fit to training data
+X_full_train_enc_norm = data_scaler.fit_transform(X_full_train_enc)
+X_final_test_enc_norm = data_scaler.transform(X_final_test_enc)
+
+X_train, X_test, y_train, y_test = model_selection.train_test_split(X_full_train_enc_norm, y_full_train, test_size=0.20)
 
 # %%
 ###
@@ -96,6 +108,7 @@ log_model_name_str = 'Logistic Regression Classification'
 # SGD fails to converge to good optima sometimes, so lbfgs is used which finds optima without being too computationally expensive for this data
 log_model.fit(X_train, y_train)
 
+# %%
 # Evaluate logistic regression
 log_model_eval = evaluate_model(log_model, X_train, y_train, X_test, y_test, model_name_str=log_model_name_str)
 
@@ -108,45 +121,27 @@ with open( '{0}'.format('log_learning_curve.pkl'),'wb') as f:
 
 # %% 
 # Output prediction and save model
-output_kaggle_prediction_and_save_model(log_model, X_final_test_enc, final_idxs)
+output_kaggle_prediction_and_save_model(log_model, X_final_test_enc_norm, final_idxs)
 
 # %%
 ###
 # %%
 # Linear support vector machine classification 
-svc_model = svm.SVC(kernel='linear', verbose=True)
+svc_model = svm.SVC(kernel='rbf', C=10.0, verbose=True)
 svc_model.fit(X_train, y_train)
+svc_model_name_str = 'Support Vector Machine Classification'
 
+# %%
 # Evaluate linear support vector classification 
-svc_model_eval = evaluate_model(svc_model, X_train, y_train, X_test, y_test, model_name_str='Support vector machine classification')
+svc_model_eval = evaluate_model(svc_model, X_train, y_train, X_test, y_test, model_name_str=svc_model_name_str)
 
 # %% Learning Curves 
+svc_model_train_learning_curve, svc_model_val_learning_curve = create_learning_curves(svc_model, X_train, y_train, model_name_str=svc_model_name_str, num_data_points=5)
+
+# %% Save learning curves 
+with open( '{0}'.format('svc_learning_curve.pkl'),'wb') as f:
+    pickle.dump([svc_model_train_learning_curve, svc_model_val_learning_curve],f)
 
 # %% 
 # Output prediction and save model
-output_kaggle_prediction_and_save_model(svc_model, X_final_test_enc, final_idxs)
-
-# %%
-# Evaluating difference between using labels or probabilities to calculate AUC
-with open( '{0}'.format(models_path/'2021-10-24-19:59:39-submission.pkl'),'rb') as f:
-    log_model = pickle.load(f)
-
-def evaluate_model_proba(model, X_train, y_train, X_test, y_test, model_name_str='', should_print=True):
-    # Evaluates model in terms of test and train accuracy 
-    # Train data evaluation
-    y_train_pred = model.predict_proba(X_train)[:,1]
-    train_acc = model.score(X_train, y_train)
-    train_auc = metrics.roc_auc_score(y_train, y_train_pred)
-
-    # Test data evaluation
-    y_test_pred = model.predict_proba(X_test)[:,1]
-    test_acc = model.score(X_test, y_test)
-    test_auc = metrics.roc_auc_score(y_test, y_test_pred)
-
-    if should_print:
-        print('{0} model: train accuracy = {1}, train AUC = {2} \ntest accuracy = {3}, test AUC = {4}'.format(model_name_str, train_acc, train_auc, test_acc, test_auc))
-    return train_acc, train_auc, test_acc, test_auc
-
-log_model_eval = evaluate_model(log_model, X_train, y_train, X_test, y_test, model_name_str=log_model_name_str)
-log_model_eval = evaluate_model_proba(log_model, X_train, y_train, X_test, y_test, model_name_str=log_model_name_str)
-# I assume if probabilities are given to kaggle submission then will round up or down to get label prediction... (since AUC of using proba is not close to what kaggles AUC is while if label prediction is used is close to kaggles AUC)
+output_kaggle_prediction_and_save_model(svc_model, X_final_test_enc_norm, final_idxs)
