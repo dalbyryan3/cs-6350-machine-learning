@@ -45,9 +45,13 @@ class Perceptron():
         num_examples, num_features = X.shape
         self.w = np.zeros(num_features)
         for _ in range(T):
+            indices = np.arange(y.shape[0])
+            np.random.shuffle(indices)
+            Xshuff = X[indices]
+            yshuff = y[indices]
             for i in range(num_examples):
-                xi = X[i,:]
-                yi = y[i]
+                xi = Xshuff[i,:]
+                yi = yshuff[i]
                 if (yi*np.dot(self.w, xi) <= 0):
                     self.w = self.w + r * (yi*xi)
         return self.w
@@ -92,9 +96,13 @@ class VotedPerceptron():
         w = np.zeros(num_features)
         c = 0 
         for _ in range(T):
+            indices = np.arange(y.shape[0])
+            np.random.shuffle(indices)
+            Xshuff = X[indices]
+            yshuff = y[indices]
             for i in range(num_examples):
-                xi = X[i,:]
-                yi = y[i]
+                xi = Xshuff[i,:]
+                yi = yshuff[i]
                 if (yi*np.dot(w, xi) <= 0):
                     if (i != 0):
                         w_list.append(w.copy()) # Append a new wm
@@ -150,9 +158,13 @@ class AveragedPerceptron():
         self.w = np.zeros(num_features)
         self.a = np.zeros(num_features)
         for _ in range(T):
+            indices = np.arange(y.shape[0])
+            np.random.shuffle(indices)
+            Xshuff = X[indices]
+            yshuff = y[indices]
             for i in range(num_examples):
-                xi = X[i,:]
-                yi = y[i]
+                xi = Xshuff[i,:]
+                yi = yshuff[i]
                 if (yi*np.dot(self.w, xi) <= 0):
                     self.w = self.w + r * (yi*xi)
                 self.a = self.a + self.w

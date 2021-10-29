@@ -52,3 +52,6 @@ y_train_pred_err = calculate_prediction_error(y_train_pred, y_train)
 y_test_pred_err = calculate_prediction_error(y_test_pred, y_test)
 
 print("Averaged perceptron model training error = {0}, test error = {1}\n".format(y_train_pred_err, y_test_pred_err))
+# %%
+
+# %%
