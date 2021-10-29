@@ -1,6 +1,4 @@
-import collections
 import numpy as np
-from numpy.core.fromnumeric import clip
 
 def calculate_prediction_error(y_pred, y):
     """ Get prediction error.
@@ -145,9 +143,7 @@ class AveragedPerceptron():
             r (float, optional): Learning rate. Defaults to 0.01.
 
         Returns:
-            tuple: tuple containing 
-                ndarray: Final weight vector A d shape 1D numpy array. 
-                ndarray: ndarray: Sum of all the weight vectors that were explored. A d shape 1D numpy array.
+            ndarray: ndarray: Sum of all the weight vectors that were explored. A d shape 1D numpy array.
             
         """
         num_examples, num_features = X.shape
@@ -160,7 +156,7 @@ class AveragedPerceptron():
                 if (yi*np.dot(self.w, xi) <= 0):
                     self.w = self.w + r * (yi*xi)
                 self.a = self.a + self.w
-        return (self.w, self.a)
+        return self.a
 
     def predict(self, X):
         """ Predict using an averaged perceptron.
