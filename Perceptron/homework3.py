@@ -29,7 +29,9 @@ y_test_pred = perceptron_model.predict(X_test)
 y_train_pred_err = calculate_prediction_error(y_train_pred, y_train)
 y_test_pred_err = calculate_prediction_error(y_test_pred, y_test)
 
-print("Perceptron model training error = {0}, test error = {1}\n".format(y_train_pred_err, y_test_pred_err))
+print("Perceptron model:")
+print("Learned weight vector = {0}".format(w))
+print("Training error = {0}, test error = {1}\n\n".format(y_train_pred_err, y_test_pred_err))
 
 # %%
 # 2b
@@ -40,7 +42,13 @@ y_test_pred = voted_perceptron_model.predict(X_test)
 y_train_pred_err = calculate_prediction_error(y_train_pred, y_train)
 y_test_pred_err = calculate_prediction_error(y_test_pred, y_test)
 
-print("Voted perceptron model training error = {0}, test error = {1}\n".format(y_train_pred_err, y_test_pred_err))
+w_vals_list = [np.array2string(w_vals[i,:], formatter={'float_kind':'{0:.4f}'.format}) for i in range(w_vals.shape[0])]
+table_df = pd.DataFrame({'Counts': c_vals, 'Weights': w_vals_list})
+latex_table = table_df.to_latex(column_format='|c|c|', index=None, longtable=True, caption='Voted Perceptron Counts(Votes) and Weight Vectors', label='tab:2b')
+
+print("Voted perceptron model:")
+print("Learned weight vectors as latex table = \n\n{0}\n\n".format(latex_table))
+print("Training error = {0}, test error = {1}\n\n".format(y_train_pred_err, y_test_pred_err))
 
 # %%
 # 2c
@@ -51,7 +59,6 @@ y_test_pred = averaged_perceptron_model.predict(X_test)
 y_train_pred_err = calculate_prediction_error(y_train_pred, y_train)
 y_test_pred_err = calculate_prediction_error(y_test_pred, y_test)
 
-print("Averaged perceptron model training error = {0}, test error = {1}\n".format(y_train_pred_err, y_test_pred_err))
-# %%
-
-# %%
+print("Averaged perceptron model:")
+print("Learned weight vector (sum of all weights investigated, a) = {0}".format(a))
+print("Training error = {0}, test error = {1}\n\n".format(y_train_pred_err, y_test_pred_err))
