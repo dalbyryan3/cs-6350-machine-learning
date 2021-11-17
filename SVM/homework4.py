@@ -3,6 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import pickle
 
 # Personal Libraries
 from SVM import Svm
@@ -33,15 +34,15 @@ def calculate_prediction_error(y_pred, y):
     """
     return np.sum(y_pred!=y) / y.shape[0]
 
-# Displaying train and test errors and plotting function for 2
-def visualize_and_get_results_prob2(models, obj_func_vals_by_epoch,  C_vals):
+# Displaying train and test errors and plotting for 2
+def output_results_prob2(models, obj_func_vals_by_epoch, C_vals):
     plt.figure()
     for i, C in enumerate(C_vals):
         print("C = {0}".format(C))
         model = models[i]
-        print("Weight vector = {0}\n bias = {1}".format(model.w[:-1], model.w[-1]))
-        train_err = calculate_prediction_error(model.primal_predict(X_train), y_train)
-        test_err = calculate_prediction_error(model.primal_predict(X_test), y_test)
+        print("Weight vector = {0}\n bias = {1}".format(model.w_aug[:-1], model.w_aug[-1]))
+        train_err = calculate_prediction_error(model.predict(X_train), y_train)
+        test_err = calculate_prediction_error(model.predict(X_test), y_test)
         print("Training error = {0}, Test error = {1}".format(train_err, test_err))
         print()
         plt.plot(obj_func_vals_by_epoch[i][1:], label='Training obj func value, C={0}'.format(C)) # Note that not plotting first epoch value so results are easier to visualize on plot
@@ -50,6 +51,18 @@ def visualize_and_get_results_prob2(models, obj_func_vals_by_epoch,  C_vals):
     plt.ylabel('SVM Primal Objective Value')
     plt.legend()
     plt.show()
+
+# Displaying train and test errors and alpha_star for 3
+def output_results_prob3(models, alpha_star, C_vals):
+    for i, C in enumerate(C_vals):
+        print("C = {0}".format(C))
+        model = models[i]
+        print("Weight vector = {0}\n bias = {1}".format(model.w_aug[:-1], model.w_aug[-1]))
+        train_err = calculate_prediction_error(model.predict(X_train), y_train)
+        test_err = calculate_prediction_error(model.predict(X_test), y_test)
+        print("Training error = {0}, Test error = {1}".format(train_err, test_err))
+        # print("Alpha_star = {0}".format(alpha_star))
+        print()
 
 # %%
 data_root_path = './bank-note'
@@ -82,8 +95,9 @@ for C in C_vals:
     svm_primal_sgd_obj_func_vals_by_epoch_2a.append(objective_func_vals_by_epoch)
 
 # %%
-# 2a plotting and visualization
-visualize_and_get_results_prob2(svm_primal_sgd_models_2a, svm_primal_sgd_obj_func_vals_by_epoch_2a, C_vals)
+# 2a 
+# Plotting and output results
+output_results_prob2(svm_primal_sgd_models_2a, svm_primal_sgd_obj_func_vals_by_epoch_2a, C_vals)
 
 # %%
 # 2b
@@ -108,5 +122,39 @@ for C in C_vals:
     svm_primal_sgd_obj_func_vals_by_epoch_2b.append(objective_func_vals_by_epoch)
 
 # %%
-# 2b plotting and visualization
-visualize_and_get_results_prob2(svm_primal_sgd_models_2b, svm_primal_sgd_obj_func_vals_by_epoch_2b, C_vals)
+# 2b 
+# Plotting and output results
+output_results_prob2(svm_primal_sgd_models_2b, svm_primal_sgd_obj_func_vals_by_epoch_2b, C_vals)
+
+# %%
+# 3a
+# C values to explore
+C_vals_denom = len(y_train)+1
+C_vals = [100/C_vals_denom, 500/C_vals_denom, 700/C_vals_denom]
+svm_dual_models_3a = []
+svm_dual_alpha_stars_3a = []
+
+svm_dual = Svm()
+for C in C_vals:
+    svm_dual = Svm()
+    alpha_star = svm_dual.train_dual(X_train, y_train, C=C)
+    svm_dual_models_3a.append(svm_dual)
+    svm_dual_alpha_stars_3a.append(alpha_star)
+
+# %%
+# 3a 
+# Save results 
+with open('hw4_3a.pkl', 'wb') as f:
+    pickle.dump([svm_dual_models_3a, svm_dual_alpha_stars_3a], f)
+
+# %%
+# 3a 
+# Loading results 
+with open('hw4_3a.pkl', 'rb') as f:
+    svm_dual_models_3a, svm_dual_alpha_stars_3a= pickle.load(f)
+
+# %%
+# 3a 
+# Output results 
+output_results_prob3(svm_dual_models_3a, svm_dual_alpha_stars_3a, C_vals)
+# %%
