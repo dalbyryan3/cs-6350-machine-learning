@@ -70,7 +70,6 @@ def output_results_prob3b(models, param_vals):
         rbf_gamma = tup[1]
         print("C = {0}, rbf_gamma = {1}".format(C, rbf_gamma))
         model = models[i]
-        print("Weight vector = {0}\n bias = {1}".format(model.w_aug[:-1], model.w_aug[-1]))
         train_err = calculate_prediction_error(model.predict(X_train), y_train)
         test_err = calculate_prediction_error(model.predict(X_test), y_test)
         print("Training error = {0}, Test error = {1}".format(train_err, test_err))
@@ -163,7 +162,7 @@ with open('hw4_3a.pkl', 'wb') as f:
 # 3a 
 # Loading results 
 with open('hw4_3a.pkl', 'rb') as f:
-    svm_dual_models_3a, svm_dual_alpha_stars_3a= pickle.load(f)
+    svm_dual_models_3a, svm_dual_alpha_stars_3a = pickle.load(f)
 
 # %%
 # 3a 
@@ -174,10 +173,10 @@ output_results_prob3a(svm_dual_models_3a, C_vals)
 # 3b
 # C values to explore
 C_vals_denom = len(y_train)+1
-C_vals = [100/C_vals_denom]
-# C_vals = [100/C_vals_denom, 500/C_vals_denom, 700/C_vals_denom]
-rbf_gamma_vals = [0.1]
-# rbf_gamma_vals = [0.1, 0.5, 1, 5, 100]
+# C_vals = [100/C_vals_denom]
+C_vals = [100/C_vals_denom, 500/C_vals_denom, 700/C_vals_denom]
+# rbf_gamma_vals = [0.1]
+rbf_gamma_vals = [0.1, 0.5, 1, 5, 100]
 svm_dual_models_3b = []
 svm_dual_alpha_stars_3b = []
 svm_dual_param_vals_3b = []
@@ -195,13 +194,13 @@ for C in C_vals:
 # 3b 
 # Save results 
 with open('hw4_3b.pkl', 'wb') as f:
-    pickle.dump([svm_dual_models_3b, svm_dual_alpha_stars_3b], f)
+    pickle.dump([svm_dual_models_3b, svm_dual_alpha_stars_3b, svm_dual_param_vals_3b], f)
 
 # %%
 # 3b 
 # Loading results 
 with open('hw4_3b.pkl', 'rb') as f:
-    svm_dual_models_3b, svm_dual_alpha_stars_3b= pickle.load(f)
+    svm_dual_models_3b, svm_dual_alpha_stars_3b, svm_dual_param_vals_3b = pickle.load(f)
 
 # %%
 # 3b 
