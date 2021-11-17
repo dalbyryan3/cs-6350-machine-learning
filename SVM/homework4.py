@@ -34,7 +34,7 @@ def calculate_prediction_error(y_pred, y):
     """
     return np.sum(y_pred!=y) / y.shape[0]
 
-# Displaying train and test errors and plotting for 2
+# Displaying train errors, test errors, and plotting for 2
 def output_results_prob2(models, obj_func_vals_by_epoch, C_vals):
     plt.figure()
     for i, C in enumerate(C_vals):
@@ -52,8 +52,8 @@ def output_results_prob2(models, obj_func_vals_by_epoch, C_vals):
     plt.legend()
     plt.show()
 
-# Displaying train and test errors and alpha_star for 3
-def output_results_prob3(models, alpha_star, C_vals):
+# Displaying parameters, train errors, and test errors for 3a
+def output_results_prob3a(models, C_vals):
     for i, C in enumerate(C_vals):
         print("C = {0}".format(C))
         model = models[i]
@@ -61,7 +61,19 @@ def output_results_prob3(models, alpha_star, C_vals):
         train_err = calculate_prediction_error(model.predict(X_train), y_train)
         test_err = calculate_prediction_error(model.predict(X_test), y_test)
         print("Training error = {0}, Test error = {1}".format(train_err, test_err))
-        # print("Alpha_star = {0}".format(alpha_star))
+        print()
+
+# Displaying parameters, train errors, and test errors for 3b
+def output_results_prob3b(models, param_vals):
+    for i, tup in enumerate(param_vals):
+        C = tup[0]
+        rbf_gamma = tup[1]
+        print("C = {0}, rbf_gamma = {1}".format(C, rbf_gamma))
+        model = models[i]
+        print("Weight vector = {0}\n bias = {1}".format(model.w_aug[:-1], model.w_aug[-1]))
+        train_err = calculate_prediction_error(model.predict(X_train), y_train)
+        test_err = calculate_prediction_error(model.predict(X_test), y_test)
+        print("Training error = {0}, Test error = {1}".format(train_err, test_err))
         print()
 
 # %%
@@ -156,5 +168,42 @@ with open('hw4_3a.pkl', 'rb') as f:
 # %%
 # 3a 
 # Output results 
-output_results_prob3(svm_dual_models_3a, svm_dual_alpha_stars_3a, C_vals)
+output_results_prob3a(svm_dual_models_3a, C_vals)
+
 # %%
+# 3b
+# C values to explore
+C_vals_denom = len(y_train)+1
+C_vals = [100/C_vals_denom]
+# C_vals = [100/C_vals_denom, 500/C_vals_denom, 700/C_vals_denom]
+rbf_gamma_vals = [0.1]
+# rbf_gamma_vals = [0.1, 0.5, 1, 5, 100]
+svm_dual_models_3b = []
+svm_dual_alpha_stars_3b = []
+svm_dual_param_vals_3b = []
+
+svm_dual = Svm()
+for C in C_vals:
+    for rbf_gamma in rbf_gamma_vals:
+        svm_dual = Svm()
+        alpha_star = svm_dual.train_dual(X_train, y_train, C=C, rbf_kernel=True, rbf_gamma=rbf_gamma)
+        svm_dual_models_3b.append(svm_dual)
+        svm_dual_alpha_stars_3b.append(alpha_star)
+        svm_dual_param_vals_3b.append((C, rbf_gamma))
+
+# %%
+# 3b 
+# Save results 
+with open('hw4_3b.pkl', 'wb') as f:
+    pickle.dump([svm_dual_models_3b, svm_dual_alpha_stars_3b], f)
+
+# %%
+# 3b 
+# Loading results 
+with open('hw4_3b.pkl', 'rb') as f:
+    svm_dual_models_3b, svm_dual_alpha_stars_3b= pickle.load(f)
+
+# %%
+# 3b 
+# Output results 
+output_results_prob3b(svm_dual_models_3b, svm_dual_param_vals_3b)
