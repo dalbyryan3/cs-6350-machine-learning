@@ -1,5 +1,6 @@
 # %%
 # Libraries 
+from typing import overload
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -75,6 +76,46 @@ def output_results_prob3b(models, param_vals):
         test_err = calculate_prediction_error(model.predict(X_test), y_test)
         print("Training error = {0}, Test error = {1}".format(train_err, test_err))
         print()
+
+def calculate_num_support_vectors_3c(alpha_stars):
+    num_support_vectors_list = []
+    for alpha_star in alpha_stars:
+        num_support_vectors_list.append(np.sum(alpha_star != 0.0))
+    return np.array(num_support_vectors_list)
+
+def display_num_support_vectors_3c(num_support_vectors, param_vals):
+    for i, tup in enumerate(param_vals):
+        C = tup[0]
+        rbf_gamma = tup[1]
+        print("C = {0}, rbf_gamma = {1}".format(C, rbf_gamma))
+        print("Number of support vectors = {0}".format(num_support_vectors[i]))
+        print()
+
+def overlapping_consecutive_support_vectors_3c(alpha_stars, param_vals, C_to_analyze=500/873):
+    # Assumes that rbf_gamma values in param_vals are ordered in way that overlapping should be analyzed
+    overlapping_list = []
+    last_rbf_gamma = None
+    last_alpha_star = None
+    for i, tup in enumerate(param_vals):
+        C = tup[0]
+        rbf_gamma = tup[1]
+        if C == C_to_analyze:
+            if last_rbf_gamma is None or last_alpha_star is None:
+                last_alpha_star = alpha_stars[i]
+                last_rbf_gamma = rbf_gamma
+                continue
+            overlapping_list.append(((last_rbf_gamma, rbf_gamma), np.sum(alpha_stars[i]==last_alpha_star)))
+            last_alpha_star = alpha_stars[i]
+            last_rbf_gamma = rbf_gamma
+    return overlapping_list
+
+def display_overlapping_consecutive_support_vectors_3c(overlapping, C_to_analyze=500/873):
+    print("For C = {0}".format(C_to_analyze))
+    for tup in overlapping:
+        last_gamma = tup[0][0]
+        gamma = tup[0][1]
+        num_overlap = tup[1]
+        print("Last gamma = {0}, gamma = {1}, num_overlap = {2}".format(last_gamma, gamma, num_overlap))
 
 # %%
 data_root_path = './bank-note'
@@ -207,3 +248,10 @@ with open('hw4_3b.pkl', 'rb') as f:
 # 3b 
 # Output results 
 output_results_prob3b(svm_dual_models_3b, svm_dual_param_vals_3b)
+
+# %%
+# 3c
+num_support_vectors_vec_3b = calculate_num_support_vectors_3c(svm_dual_alpha_stars_3b)
+display_num_support_vectors_3c(num_support_vectors_vec_3b, svm_dual_param_vals_3b)
+overlapping_3b = overlapping_consecutive_support_vectors_3c(svm_dual_alpha_stars_3b, svm_dual_param_vals_3b)
+display_overlapping_consecutive_support_vectors_3c(overlapping_3b)
