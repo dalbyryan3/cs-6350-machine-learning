@@ -22,6 +22,7 @@ def convert_0_to_minus1(y):
     ycp = y.copy()
     ycp[ycp==0] = -1
     return ycp
+
 def calculate_prediction_error(y_pred, y):
     """ Get prediction error.
 
@@ -111,7 +112,7 @@ for C in C_vals:
 output_results_prob2(svm_primal_sgd_models_2a, svm_primal_sgd_obj_func_vals_by_epoch_2a, C_vals)
 
 # %%
-# 2b
+# 2b- LONG RUNNING
 T = 100
 r_0 = 0.1
 a = 0.1
@@ -170,7 +171,7 @@ with open('hw4_3a.pkl', 'rb') as f:
 output_results_prob3a(svm_dual_models_3a, C_vals)
 
 # %%
-# 3b
+# 3b- LONG RUNNING
 # C values to explore
 C_vals_denom = len(y_train)+1
 # C_vals = [100/C_vals_denom]
