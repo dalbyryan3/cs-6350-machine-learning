@@ -1,6 +1,4 @@
 import numpy as np
-from numpy.core.fromnumeric import size
-from numpy.random.mtrand import rand
 
 class NeuralNetwork():
     def __init__(self, H):
@@ -31,10 +29,10 @@ class NeuralNetwork():
         S1 = np.dot(X, self.W1) + self.b1 # mxH
         Z1 = self._sigmoid(S1) # mxH
 
-        S2 = np.dot(X, self.W2) + self.b2 # mxH
+        S2 = np.dot(Z1, self.W2) + self.b2 # mxH
         Z2 = self._sigmoid(S2) # mxH
 
-        score = np.dot(X, self.W3) + self.b3 # mx1 = m
+        score = np.dot(Z2, self.W3) + self.b3 # mx1
 
         cache = (S1, Z1, S2, Z2)
 
@@ -47,7 +45,7 @@ class NeuralNetwork():
         return 0.5 * (scores - y)**2
 
     def train(self, X, y, T=100, abs_loss_diff_thresh=1e-6, r=0.01, random_weight_initialization=True, r_sched=None):
-        """ Train a neural network from scratch using MSE as loss
+        """ Train a neural network from scratch using stochastic gradient decsent with MSE as loss. Will set the weights of this object to the values found from training.
 
         Args:
             X (ndarray): Feature data. An m by d shape 2D numpy array where m is the number of examples and d is the number of features. 
@@ -63,7 +61,6 @@ class NeuralNetwork():
         m, d = X.shape
         self._initialize_weights(d, random_weight_initialization=random_weight_initialization)
 
-
         example_idxs_shuffle = np.arange(m)
         current_total_loss = 0
         total_loss_by_epoch = []
@@ -73,9 +70,8 @@ class NeuralNetwork():
             for i in example_idxs_shuffle:
                 x = X[i,:].reshape((1,-1)) # (1xd) # MAY HAVE TO CHANGE THIS... BUT MAY ALSO PREVENT NEEDING RESHAPES IN BACKWARDS PASS
                 score, (S1, Z1, S2, Z2) = self._forward_pass(x) # (1), ((1xH),(1xH),(1xH),(1xH)) => (scalar), ((H),(H),(H),(H))
-                print(score.shape)
-                print((S1, Z1, S2, Z2))
-                loss = self._MSE(score, y[i])
+
+                # Backprop as written below, should work generally for batch sizes other than m=1 not just 1 example if dy is an mx1 vector
                 # Note that d* implies ((partial d) / (partial *))
                 dy = (score - y[i]).reshape((1,1)) # (1x1)
                 dW3 = np.dot(Z2.reshape((1,-1)).T, dy) # (1xH).T dot (1x1) => (Hx1) dot (1x1) => (Hx1)
@@ -90,6 +86,7 @@ class NeuralNetwork():
                 dsigmoid_1 = self._sigmoid(S1) * (1 - self._sigmoid(S1)) * dZ1 # (1xH)*(1-(1xH))*(1xH) => (1xH)
                 dW1 = np.dot(x.reshape((1,-1)).T, dsigmoid_1) # (1xd).T dot (1xH) => (dx1) dot (1xH) => (dxH)
                 db1 = np.sum(dsigmoid_1, axis=0) # (1xH) => (H)
+
 
                 # Update weights
                 self.W1 -= r_t * dW1 # (dxH)
@@ -112,9 +109,6 @@ class NeuralNetwork():
         return total_loss_by_epoch
 
 
-
-
-
     def predict(self, X):
         """ Predict using a trained neural network. Note data must have same features as the data trained on.
 
@@ -125,4 +119,4 @@ class NeuralNetwork():
             ndarray: A n shape 1D numpy array representing the predictions with the current learned weights. 
         """
         score, _ = self._forward_pass(X)
-        return np.sign(score)
+        return np.sign(score.flatten())
