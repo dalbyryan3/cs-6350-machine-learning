@@ -38,55 +38,61 @@ class NeuralNetwork():
 
         return score, cache
 
+    def _backwards_pass(self, X, y, scores, cache):
+        # Backprop as written below, should work generally for batch sizes other than m=1 not just 1 example if dy is an mx1 vector
+        # Note that d* implies ((partial d) / (partial *))
+        S1, Z1, S2, Z2 = cache
+
+        dy = (scores - y).reshape((1,1)) # (mx1)
+        dW3 = np.dot(Z2.reshape((1,-1)).T, dy) # (mxH).T dot (mx1) => (Hxm) dot (mx1) => (Hx1)
+        db3 = np.sum(dy, axis=0) # sum((mx1), axis=0) => (1)
+        dZ2 = np.dot(dy, self.W3.reshape((-1,1)).T) # (mx1) dot (Hx1).T => (mx1) dot (1xH) => (mxH)
+
+        dsigmoid_2 = self._sigmoid(S2) * (1 - self._sigmoid(S2)) * dZ2 # (mxH)*(1-(mxH))*(mxH) => (mxH)
+        dW2 = np.dot(Z1.reshape((1,-1)).T, dsigmoid_2) # (mxH).T dot (mxH) => (Hxm) dot (mxH) => (HxH)
+        db2 = np.sum(dsigmoid_2, axis=0) # (mxH) => (H)
+        dZ1 = np.dot(dsigmoid_2, self.W2.T) # (mxH) dot (HxH).T => (mxH) dot (HxH) => (mxH)
+
+        dsigmoid_1 = self._sigmoid(S1) * (1 - self._sigmoid(S1)) * dZ1 # (mxH)*(1-(mxH))*(mxH) => (mxH)
+        dW1 = np.dot(X.reshape((1,-1)).T, dsigmoid_1) # (mxd).T dot (mxH) => (dxm) dot (mxH) => (dxH)
+        db1 = np.sum(dsigmoid_1, axis=0) # (mxH) => (H)
+        
+        return dW1, db1, dW2, db2, dW3, db3
+
     def _sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
     def _MSE(self, scores, y):
-        return 0.5 * (scores - y)**2
+        return 0.5 * ((scores - y)**2)
 
-    def train(self, X, y, T=100, abs_loss_diff_thresh=1e-6, r=0.01, random_weight_initialization=True, r_sched=None):
+    def train(self, X, y, T=100, abs_MSE_diff_thresh=1e-6, r=0.01, random_weight_initialization=True, r_sched=None):
         """ Train a neural network from scratch using stochastic gradient decsent with MSE as loss. Will set the weights of this object to the values found from training.
 
         Args:
             X (ndarray): Feature data. An m by d shape 2D numpy array where m is the number of examples and d is the number of features. 
             y (ndarray): Binary (1 or -1) label data. A m shape 1D numpy array where m is the number of examples.
             T (int, optional): Number of epochs to train the neural network on over the entire set of examples. Defaults to 10.
-            abs_loss_diff_thresh (float, optional): The threshold to stop stochastic gradient descent (what is considered convergence), the absolute value between the current and previous total loss values on given training data. Defaults to 1e-6.
+            abs_MSE_diff_thresh (float, optional): The threshold to stop stochastic gradient descent (what is considered convergence), the absolute value between the current and previous MSE loss values on given training data. Defaults to 1e-6.
             r (float, optional): Learning rate. Defaults to 0.01.
             r_sched (ndarray, optional): Learning rate schedule for each epoch (will override usage of r since r for each epoch was given). Defaults to None which means not learning rate schedule is used and constant r is used for each epoch.
 
         Returns:
-            list: Returns a list containing the total MSE loss value at each epoch. 
+            list: Returns a list containing the MSE loss on the training data at each epoch. 
         """
         m, d = X.shape
         self._initialize_weights(d, random_weight_initialization=random_weight_initialization)
 
         example_idxs_shuffle = np.arange(m)
-        current_total_loss = 0
-        total_loss_by_epoch = []
+        current_MSE = 0
+        MSE_by_epoch = []
         for t in range(T):
             np.random.shuffle(example_idxs_shuffle) # Shuffle in-place
             r_t = r if r_sched is None else r_sched[t]
             for i in example_idxs_shuffle:
-                x = X[i,:].reshape((1,-1)) # (1xd) # MAY HAVE TO CHANGE THIS... BUT MAY ALSO PREVENT NEEDING RESHAPES IN BACKWARDS PASS
-                score, (S1, Z1, S2, Z2) = self._forward_pass(x) # (1), ((1xH),(1xH),(1xH),(1xH)) => (scalar), ((H),(H),(H),(H))
+                x = X[i,:].reshape((1,-1)) # (1xd) 
+                score, cache = self._forward_pass(x) # (1), ((1xH),(1xH),(1xH),(1xH)) => (scalar), ((H),(H),(H),(H))
 
-                # Backprop as written below, should work generally for batch sizes other than m=1 not just 1 example if dy is an mx1 vector
-                # Note that d* implies ((partial d) / (partial *))
-                dy = (score - y[i]).reshape((1,1)) # (1x1)
-                dW3 = np.dot(Z2.reshape((1,-1)).T, dy) # (1xH).T dot (1x1) => (Hx1) dot (1x1) => (Hx1)
-                db3 = np.sum(dy, axis=0) # sum((1x1), axis=1) =>  (1)
-                dZ2 = np.dot(dy, self.W3.reshape((-1,1)).T) # (1) dot (Hx1).T => (1) dot (1xH) => (1xH)
-
-                dsigmoid_2 = self._sigmoid(S2) * (1 - self._sigmoid(S2)) * dZ2 # (1xH)*(1-(1xH))*(1xH) => (1xH)
-                dW2 = np.dot(Z1.reshape((1,-1)).T, dsigmoid_2) # (1xH).T dot (1xH) => (Hx1) dot (1xH) => (HxH)
-                db2 = np.sum(dsigmoid_2, axis=0) # (1xH) => (H)
-                dZ1 = np.dot(dsigmoid_2, self.W2.T) # (1xH) dot (HxH).T => (1xH) dot (HxH) => (1xH)
-
-                dsigmoid_1 = self._sigmoid(S1) * (1 - self._sigmoid(S1)) * dZ1 # (1xH)*(1-(1xH))*(1xH) => (1xH)
-                dW1 = np.dot(x.reshape((1,-1)).T, dsigmoid_1) # (1xd).T dot (1xH) => (dx1) dot (1xH) => (dxH)
-                db1 = np.sum(dsigmoid_1, axis=0) # (1xH) => (H)
-
+                dW1, db1, dW2, db2, dW3, db3 = self._backwards_pass(x, y[i], score, cache)
 
                 # Update weights
                 self.W1 -= r_t * dW1 # (dxH)
@@ -98,15 +104,15 @@ class NeuralNetwork():
 
             # Calculate and update current cost
             scores, _ = self._forward_pass(X)
-            new_total_loss = np.sum(self._MSE(scores, y))
-            abs_total_loss_diff = abs(current_total_loss - new_total_loss)
-            current_total_loss = new_total_loss
-            total_loss_by_epoch.append(current_total_loss)
+            new_MSE = np.mean(self._MSE(scores, y))
+            abs_MSE_diff = abs(current_MSE - new_MSE)
+            current_MSE = new_MSE
+            MSE_by_epoch.append(current_MSE)
 
             # Break if the convergence critera is met
-            if abs_total_loss_diff < abs_loss_diff_thresh:
+            if abs_MSE_diff < abs_MSE_diff_thresh:
                 break
-        return total_loss_by_epoch
+        return MSE_by_epoch
 
 
     def predict(self, X):
