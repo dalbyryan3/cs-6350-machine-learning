@@ -96,10 +96,10 @@ print('Training error = {0} and testing error = {1}'.format(train_err, test_err)
 # %%
 # 2b
 # Weight initialization of randomly sampled standard gaussain 
-r0 = 0.005
-d = 1
+r0 = 0.00007
+d = 0.1 # Larger d means slower decay of r0, smaller d means faster decay of r0
 T = 100
-t_vals = np.arange(T)+1
+t_vals = np.arange(T)
 r_sched = r0 / (1 + (r0/d)*t_vals)
 
 H_vals = np.array([5, 10, 25, 50, 100])
@@ -111,7 +111,7 @@ for H in H_vals:
     plt.plot(MSE_by_epoch, label='Training Set MSE Loss')
     plt.xlabel('Epoch')
     plt.ylabel('MSE Loss')
-    plt.title('MSE Loss vs Epoch')
+    plt.title('MSE Loss vs Epoch H={0}'.format(H))
     plt.legend()
     plt.show()
 
@@ -123,8 +123,8 @@ for H in H_vals:
 # %%
 # 2c
 # Weight initialization of zero
-r0 = 0.005
-d = 1
+r0 = 0.00007
+d = 0.1 # Larger d means slower decay of r0, smaller d means faster decay of r0
 T = 100
 t_vals = np.arange(T)+1
 r_sched = r0 / (1 + (r0/d)*t_vals)
@@ -138,7 +138,7 @@ for H in H_vals:
     plt.plot(MSE_by_epoch, label='Training Set MSE Loss')
     plt.xlabel('Epoch')
     plt.ylabel('MSE Loss')
-    plt.title('MSE Loss vs Epoch')
+    plt.title('MSE Loss vs Epoch H={0}'.format(H))
     plt.legend()
     plt.show()
 
@@ -147,10 +147,3 @@ for H in H_vals:
     y_test_pred = network.predict(X_test)
     test_err = calculate_prediction_error(y_test_pred, y_test)
     print('H = {0}, gamma_0 = {1}, d = {2}: training error = {3} and testing error = {4}'.format(H, r0, d, train_err, test_err))
-
-
-# %%
-# TODO: 
-# Tune training
-# Analyze
-# Results- can train very well, but training highly susceptible to hyperparameters

@@ -32,11 +32,11 @@ class NeuralNetwork():
         S2 = np.dot(Z1, self.W2) + self.b2 # mxH
         Z2 = self._sigmoid(S2) # mxH
 
-        score = np.dot(Z2, self.W3) + self.b3 # mx1
+        scores = np.dot(Z2, self.W3) + self.b3 # mx1
 
         cache = (S1, Z1, S2, Z2)
 
-        return score, cache
+        return scores, cache
 
     def _backwards_pass(self, X, y, scores, cache):
         # Backprop as written below, should work generally for batch sizes other than m=1 not just 1 example if dy is an mx1 vector
@@ -63,7 +63,7 @@ class NeuralNetwork():
         return 1 / (1 + np.exp(-x))
 
     def _MSE(self, scores, y):
-        return 0.5 * ((scores - y)**2)
+        return np.mean(0.5 * ((scores - y)**2))
 
     def train(self, X, y, T=100, abs_MSE_diff_thresh=1e-6, r=0.01, random_weight_initialization=True, r_sched=None):
         """ Train a neural network from scratch using stochastic gradient decsent with MSE as loss. Will set the weights of this object to the values found from training.
@@ -104,10 +104,10 @@ class NeuralNetwork():
 
             # Calculate and update current cost
             scores, _ = self._forward_pass(X)
-            new_MSE = np.mean(self._MSE(scores, y))
+            new_MSE = self._MSE(scores, y)
             abs_MSE_diff = abs(current_MSE - new_MSE)
             current_MSE = new_MSE
-            MSE_by_epoch.append(current_MSE)
+            MSE_by_epoch.append(new_MSE)
 
             # Break if the convergence critera is met
             if abs_MSE_diff < abs_MSE_diff_thresh:
