@@ -138,7 +138,7 @@ output_kaggle_prediction_and_save_model(log_model, X_final_test_enc_norm, final_
 ###
 # %%
 # Linear support vector machine classification 
-svc_model = svm.SVC(kernel='rbf', C=10.0, verbose=True)
+svc_model = svm.SVC(kernel='rbf', C=10.0, verbose=True, probability=True)
 svc_model.fit(X_train, y_train)
 svc_model_name_str = 'Support Vector Machine Classification'
 
@@ -210,6 +210,14 @@ mlp_model.fit(X_train, y_train)
 mlp_model_name_str = 'Fully Connected Neural Network (MLP) Classifier'
 mlp_model_eval = evaluate_model(mlp_model, X_train, y_train, X_test, y_test, model_name_str=mlp_model_name_str)
 
+# %% Learning Curves 
+mlp_model_train_learning_curve, mlp_model_val_learning_curve = create_learning_curves(mlp_model, X_train, y_train, model_name_str=mlp_model_name_str, num_data_points=10)
+
+# %% Save learning curves 
+with open( '{0}'.format('mlp_learning_curve.pkl'),'wb') as f:
+    pickle.dump([mlp_model_train_learning_curve, mlp_model_val_learning_curve],f)
+
+
 # %% 
 # Output prediction and save model
 output_kaggle_prediction_and_save_model(mlp_model, X_final_test_enc_norm, final_idxs)
@@ -217,7 +225,7 @@ output_kaggle_prediction_and_save_model(mlp_model, X_final_test_enc_norm, final_
 # %%
 ###
 # %%
-# Histogram Gradient Boosting Classifier  
+# Histogram Gradient Boosting Classifier
 learning_rate = [0.01, 0.1, 0.15]
 param_grid = [
     {'learning_rate':[0.07, 0.1], 'max_depth':[31,61], 'l2_regularization':[1, 15, 30], 'max_leaf_nodes':[15], 'min_samples_leaf':[10,30]}
@@ -241,15 +249,33 @@ hist_grad_boost_model_eval = evaluate_model(hist_grad_boost_model, X_train, y_tr
 hist_grad_boost_model_train_learning_curve, hist_grad_boost_model_val_learning_curve = create_learning_curves(hist_grad_boost_model, X_train, y_train, model_name_str=hist_grad_boost_model_name_str, num_data_points=10)
 
 # %% Save learning curves 
-with open( '{0}'.format('grad_boost_learning_curve.pkl'),'wb') as f:
+with open( '{0}'.format('hist_grad_boost_learning_curve.pkl'),'wb') as f:
     pickle.dump([hist_grad_boost_model_train_learning_curve, hist_grad_boost_model_val_learning_curve],f)
 
 # %% 
 # Output prediction and save model
 output_kaggle_prediction_and_save_model(hist_grad_boost_model, X_final_test_enc_norm, final_idxs)
 
-
 # %%
 ###
 
 # %%
+# Bagged Histogram Gradient Boosting Classifier 
+
+bag_hist_grad_boost_model = BaggingClassifier(HistGradientBoostingClassifier(loss='binary_crossentropy', learning_rate=0.1, max_iter=200, max_depth=31, l2_regularization=15, early_stopping=True, max_leaf_nodes=15, min_samples_leaf=10), max_samples=1.0, max_features=1.0, bootstrap=False, n_jobs=-1)
+
+bag_hist_grad_boost_model.fit(X_train, y_train)
+bag_hist_grad_boost_model_name_str = 'Bagged Histogram Based Gradient Boosting Classifier'
+
+bag_hist_grad_boost_model_eval = evaluate_model(bag_hist_grad_boost_model, X_train, y_train, X_test, y_test, model_name_str=bag_hist_grad_boost_model_name_str)
+
+# %% Learning Curves 
+bag_hist_grad_boost_model_train_learning_curve, bag_hist_grad_boost_model_val_learning_curve = create_learning_curves(bag_hist_grad_boost_model, X_train, y_train, model_name_str=bag_hist_grad_boost_model_name_str, num_data_points=10)
+
+# %% Save learning curves 
+with open( '{0}'.format('bag_hist_grad_boost_learning_curve.pkl'),'wb') as f:
+    pickle.dump([bag_hist_grad_boost_model_train_learning_curve, bag_hist_grad_boost_model_val_learning_curve],f)
+
+# %% 
+# Output prediction and save model
+output_kaggle_prediction_and_save_model(bag_hist_grad_boost_model, X_final_test_enc_norm, final_idxs)
