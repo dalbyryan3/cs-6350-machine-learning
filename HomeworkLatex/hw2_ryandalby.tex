@@ -1,0 +1,606 @@
+\documentclass[12pt, fullpage,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+
+\newcommand{\semester}{Fall 2021}
+\newcommand{\assignmentId}{2}
+\newcommand{\releaseDate}{28 Sep, 2021}
+\newcommand{\dueDate}{11:59pm, 19 Oct, 2021}
+
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bw}{{\bf w}}
+
+\graphicspath{{./images/}}
+
+\title{CS 5350/6350: Machine Learining \semester}
+\author{Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+	Due: \dueDate}
+
+
+\title{CS 5350/6350: Machine Learning \semester}
+\author{Ryan Dalby- Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+  Due date: \dueDate}
+
+\begin{document}
+\maketitle
+
+\input{emacscomm}
+{\footnotesize
+	\begin{itemize}
+		\item You are welcome to talk to other members of the class about
+		the homework. I am more concerned that you understand the
+		underlying concepts. However, you should write down your own
+		solution. Please keep the class collaboration policy in mind.
+		
+		\item Feel free to discuss the homework with the instructor or the TAs.
+		
+		\item Your written solutions should be brief and clear. You do not need to include original problem descriptions in your solutions. You need to
+		show your work, not just the final answer, but you do \emph{not}
+		need to write it in gory detail. Your assignment should be {\bf no
+			more than 20 pages}. Every extra page will cost a point.
+		
+		\item Handwritten solutions will not be accepted.
+		
+		
+		\item {\em Your code should run on the CADE machines}. You should
+		include a shell script, {\tt run.sh}, that will execute your code
+		in the CADE environment. Your code should produce similar output
+		to what you include in your report.
+		
+		You are responsible for ensuring that the grader can execute the
+		code using only the included script. If you are using an
+		esoteric programming language, you should make sure that its
+		runtime is available on CADE.
+		
+		\item Please do not hand in binary files! We will {\em not} grade
+		binary submissions.
+		
+		\item The homework is due by \textbf{midnight of the due date}. Please submit
+		the homework on Canvas.
+		
+	\end{itemize}
+}
+
+
+\section{Paper Problems [40 points + 8 bonus]}
+\begin{enumerate}
+\item~[5 points] We have derived the PAC guarantee for consistent learners (namely, the learners can produce a hypothesis that can 100\% accurately classify the training data). The PAC guarantee is described as follows. Let $H$ be the hypothesis space used by our algorithm. Let $C$ be the concept class we want to apply our learning algorithm to search for a target function in $C$. We have shown that,  with probability at least $1-\delta$, a hypothesis $h\in H$ that is consistent with a training set of $m$ examples will have the generalization error $\mathrm{err}_D(h) < \epsilon$ if 
+\[
+m > \frac{1}{\epsilon}\big(\log(|H|) + \log\frac{1}{\delta}\big).
+\]
+
+\begin{enumerate}
+	\item~[2 points] Suppose we have two learning algorithms $L_1$ and $L_2$, which use hypothesis spaces $H_1$ and $H_2$ respectively. We know that $H_1$ is larger than $H_2$, \ie $|H_1| > |H_2|$.
+	For each target function in $C$, we assume both algorithms can find a hypothesis consistent with the training data. 
+	\begin{enumerate}
+		\item~[1 point] According to Occam's Razor principle, which learning algorithm's  result hypothesis do you prefer? Why?
+
+		% 1ai
+		\textit{Answer:}
+
+		I would prefer $L_2$'s result hypothesis because of how Occam's Razor principle applied to this situation says to prefer smaller hypothesis spaces. 
+		This preference is because a hypothesis consistent with many examples in a smaller hypothesis space is less likely to not generalize well than with a larger hypothesis space.
+
+		\item~[1 point]  How is this principle reflected in our PAC guarantee? Please use the above inequality to explain why we will prefer the corresponding result hypothesis. 
+
+		% 1aii
+		\textit{Answer:}
+
+		The preference in 1ai. is reflected in the PAC guarantee by if we have a smaller hypothesis space like that of $L_2$ relative to $L_1$, we have a smaller m number of training set examples to have generalization error $\mathrm{err}_D(h) < \epsilon$ given a constant $\delta$ using the PAC guarantee inequality. 
+		This means we meet this inequality with less training examples and so with the same number of training examples we can be more confident that hypothesis from the smaller hypothesis space will have a small generalization error.
+
+	\end{enumerate}
+	\item~[3 points] Let us investigate algorithm $L_1$. Suppose we have $n$ input features, and the size of the hypothesis space used by $L_1$ is $3^n$. Given $n=10$ features, if we want to guarantee a 95\% chance of learning a hypothesis of at least 90\% generalization accuracy, how many training examples at least do we need for $L_1$?
+
+	% 1b
+	\textit{Answer:}
+
+	Given $1-\delta = 0.95$ and $\epsilon = 0.10$ then $m > 139.8$ meaning we need at least 140 training examples for $L_1$.
+
+
+\end{enumerate}
+
+\item~[5 points] In our lecture about AdaBoost algorithm, we introduced the definition of weighted error in each round $t$, 
+\[
+\epsilon_t = \frac{1}{2} - \frac{1}{2}\big(\sum_{i=1}^m D_t(i) y_i h_t(x_i)\big)
+\]
+where $D_t(i)$ is the weight of $i$-th training example, and $h_t(x_i)$ is the prediction of the weak classifier learned round $t$. Note that both $y_i$ and $h_t(x_i)$ belong to $\{1, -1\}$. Prove that equivalently,
+\[
+\epsilon_t = \sum_{y_i \neq h_t(x_i)} D_t(i).
+\]
+
+% 2
+\textit{Answer:}
+
+Breaking the sum inside $\epsilon_t$ into $\epsilon_t=\frac{1}{2} - (\epsilon_{t,1}+\epsilon_{t,2})$ corresponding to possible cases of $y_i=h_t(x_i)$ where $y_i h_(x_i) = 1$ and $y_i \neq h_t(x_i)$ where $y_i h_(x_i) = -1$ respectively, we can write
+\[
+	\epsilon_{t,1} = \frac{1}{2}\big(\sum_{y_i = h_t(x_i)} D_t(i)),\quad 
+	\epsilon_{t,2} = - \frac{1}{2}\big(\sum_{y_i \neq h_t(x_i)} D_t(i)).
+\]
+We also know that $\sum_{i=1}^m D_t(i) = 1$ so multiplying both sides by $\frac{1}{2}$ and expanding the summation we get
+\[
+	\frac{1}{2}\big(\sum_{y_i = h_t(x_i)} D_t(i)) + 
+	\frac{1}{2}\big(\sum_{y_i \neq h_t(x_i)} D_t(i)) = 
+	\frac{1}{2}.
+\]
+Finally we substitute back into $\epsilon_t=\frac{1}{2} - (\epsilon_{t,1}+\epsilon_{t,2})$ and get
+\[
+	\epsilon_t = 
+	\frac{1}{2}\big(\sum_{y_i = h_t(x_i)} D_t(i)) + 
+	\frac{1}{2}\big(\sum_{y_i \neq h_t(x_i)} D_t(i)) - 
+	\left(\frac{1}{2}\big(\sum_{y_i = h_t(x_i)} D_t(i)) -
+	\frac{1}{2}\big(\sum_{y_i \neq h_t(x_i)} D_t(i))\right),
+\]
+simplifying we conclude
+\[
+	\epsilon_t = 
+	\sum_{y_i \neq h_t(x_i)} D_t(i)
+\]
+
+\item~[20 points] Can you figure out an equivalent linear classifier for the following Boolean functions? Please point out what the weight vector, the bias parameter and the hyperplane are. Note that the hyperplane is determined by an equation. If you cannot find out a  linear classifier, please explain why, and work out some feature mapping such that, after mapping all the inputs of these functions into a higher dimensional space, there is a hyperplane that well separates the inputs; please write down the separating hyperplane in the new feature space. 
+	\begin{enumerate}
+		\item~[2 point] $f(x_1, x_2, x_3) = x_1 \land \neg x_2 \land \neg x_3$
+
+		% 3a
+		\textit{Answer:}
+
+		$y = 1$ if $x_1 - x_2 - x_3 \ge 1$
+
+		hyperplane: $x_1 - x_2 - x_3 - 1 = 0$
+
+		weight vector: $\w = [1, -1, -1]^\top$
+
+		bias: $b = -1$
+
+		\item~[2 point] $f(x_1, x_2, x_3) = \neg x_1 \lor \neg x_2 \lor \neg x_3$ 
+
+		% 3b
+		\textit{Answer:}
+
+		$y = 1$ if $-x_1 - x_2 - x_3 \ge -2$
+
+		hyperplane: $-x_1 - x_2 - x_3 + 2 = 0$
+
+		weight vector: $\w = [-1, -1, -1]^\top$
+
+		bias: $b = 2$
+
+		\item~[8 points] $f(x_1, x_2, x_3, x_4) = (x_1 \lor x_2) \land (x_3 \lor x_4)$
+
+		% 3c
+		\textit{Answer:}
+
+		This boolean function has no equivalent linear classifier because it is a non-trivial boolean function that is the conjunction of at least 1 of ${x_1, x_2}$ and at least 1 of ${x_3, x_4}$.
+
+		A mapping is possible to separate the inputs by augmenting $x_1$ to $x_3 x_1$, augmenting $x_2$ to $x_4 x_2$, augmenting $x_3$ to $x_2 x_3$, and augmenting $x_4$ to $x_1 x_4$.
+		Thus we can say the augmented feature space now contains $\{x_3 x_1, x_4 x_2, x_2 x_3, x_1 x_4\}$ in this space we can describe a decision function as 
+
+		$ y = 1$ if $x_3 x_1 + x_4 x_2 + x_2 x_3 + x_1 x_4 \ge 1$
+
+		hyperplane: $x_3 x_1 + x_4 x_2 + x_2 x_3 + x_1 x_4 - 1 = 0$
+
+		weight vector: $\w = [1, 1, 1, 1]^\top$ (In original space: $\w = [x_3, x_4, x_2, x_1]^\top$)
+
+		bias: $b = -1$
+
+		\item ~[8 points] $f(x_1, x_2) = (x_1 \land x_2) \lor (\neg x_1 \land \neg x_2)$
+
+		% 3d
+		\textit{Answer:}
+
+		This boolean function has no equivalent linear classifier because it is a non-trivial boolean function that is the negation of XOR (not seperable because of parity).
+
+		A mapping is possible to separate the inputs by augmenting $x_1$ to $x_1 (1 - x_2)$ and augmenting $x_2$ to $x_2 (1 - x_1)$.
+		Thus we can say the augmented feature space now contains $\{x_1, x_1 x_2, x_2\}$ in this space we can describe a decision function as 
+
+		$ y = 1$ if $x_1 - 2 x_1 x_2 + x_2 \ge 0$
+
+		hyperplane: $x_1 - 2 x_1 x_2 + x_2 = 0$
+
+		weight vector: $\w = [1, -2, 1]^\top$ (In original space: $\w = [(1 - x_2), (1 - x_1)]^\top$)
+
+		bias: $b = 0$
+
+
+
+	\end{enumerate}
+		
+	
+	\item~[\textbf{Bonus}]~[8 points]  Given two vectors $\x = [x_1,  x_2]$ and $\y=[y_1,  y_2]$, find a feature mapping $\phi(\cdot)$ for each of the following functions, such that the function is equal to the inner product between the mapped feature vectors, $\phi(\x)$ and $\phi(\y)$. For example, $(\x^\top \y)^0 = \phi(\x)^\top \phi(\y)$ where $\phi(\x) = [1]$ and $\phi(\y) = [1]$; $(\x^\top \y)^1 = \phi(\x)^\top \phi(\y)$ where $\phi(\x) = \x$ and $\phi(\y) = \y$. 
+	\begin{enumerate}
+		\item~[2 points] $(\x^\top \y)^2$
+		\item~[2 points] $(\x^\top \y)^3$
+		\item~[4 points] $(\x^\top \y)^k$ where $k$ is  any positive integer.  
+	\end{enumerate}
+
+\item~[10 points] Suppose we have the training data shown in Table \ref{tb:1}, from which we want to learn a linear regression model, parameterized by a weight vector $\w$ and a bias parameter $b$.  
+\begin{table}
+	\centering
+	\begin{tabular}{ccc|c}
+		$x_1 $ & $x_2$ & $x_3$ &  $y$\\ 
+		\hline\hline
+		1 & -1 & 2 & 1 \\ \hline
+		1 & 1 & 3 & 4 \\ \hline
+		-1 & 1 & 0 & -1 \\ \hline
+		1 & 2 & -4 & -2 \\ \hline
+		3 & -1 & -1 & 0\\ \hline
+	\end{tabular}
+	\caption{Linear regression training data.}\label{tb:1}
+\end{table}
+
+\begin{enumerate}
+	\item~[1 point] Write down the LMS (least mean square) cost function $J(\w, b)$. 
+
+	% 5a
+	\textit{Answer:}
+
+	\[
+		J(\w, b) = \frac{1}{2} \sum_{i=1}^m{(y_i - (\w^\top x_i + b))^2}
+	\]
+
+	\item~[3 points] Calculate the gradient $\frac{\nabla J}{\nabla \w}$ and $\frac{\nabla J}{\nabla b}$ when $\w = [-1,1,-1]^\top$ and $b = -1$.
+
+	% 5b
+	\textit{Answer:}
+
+	\[
+		\frac{\nabla J}{\nabla \w} = [-22, 16, -56]^\top
+	\]
+
+	\[
+		\frac{\nabla J}{\nabla b} = 10 
+	\]
+
+	\item~[3 points] What are the optimal $\w$ and $\b$ that minimize the cost function? 
+
+	% 5c
+	\textit{Answer:}
+
+	\[
+		\w = [1, 1, 1]^\top
+	\]
+
+	\[
+		b = -1
+	\]
+
+	\item~[3 points] Now, we want to use stochastic gradient descent to minimize $J(\w, b)$. We initialize $\w = \0$ and $b = 0$. We set the learning rate $r = 0.1$ and sequentially go through the $5$ training examples. Please list the stochastic gradient in each step and the updated $\w$ and $b$.  
+
+	% 5d
+	\textit{Answer:}
+
+	Step 1: 
+	\[
+		\frac{\nabla J}{\nabla \w} = [-1, 1, -2]^\top,\quad
+		\frac{\nabla J}{\nabla b} = -1 
+	\]
+
+	\[
+		\w = [0.1, -0.1, 0.2]^\top,\quad
+		b = 0.1
+	\]
+
+	Step 2: 
+	\[
+		\frac{\nabla J}{\nabla \w} = [-3.3, -3.3, -9.9]^\top,\quad
+		\frac{\nabla J}{\nabla b} = -3.3 
+	\]
+
+	\[
+		\w = [0.43, 0.23, 1.19]^\top,\quad
+		b = 0.43
+	\]
+
+	Step 3: 
+	\[
+		\frac{\nabla J}{\nabla \w} = [-1.23, 1.23, 0.0]^\top,\quad
+		\frac{\nabla J}{\nabla b} = 1.23 
+	\]
+
+	\[
+		\w = [0.553, 0.107, 1.19]^\top,\quad
+		b = 0.307
+	\]
+
+	Step 4: 
+	\[
+		\frac{\nabla J}{\nabla \w} = [-1.686, -3.372, 6.744]^\top,\quad
+		\frac{\nabla J}{\nabla b} = -1.686 
+	\]
+
+	\[
+		\w = [0.7216, 0.4442, 0.5156]\top,\quad
+		b = 0.4756 
+	\]
+
+	Step 5: 
+	\[
+		\frac{\nabla J}{\nabla \w} = [5.0418, -1.6806, -1.6806]^\top,\quad
+		\frac{\nabla J}{\nabla b} = 1.6806
+	\]
+
+	\[
+		\w = [0.21742, 0.61226, 0.68366]^\top,\quad
+		b = 0.30754 
+	\]
+
+\end{enumerate}
+\end{enumerate}
+
+\pagebreak
+
+\section{Practice [60 points + 10 bonus]}
+\begin{enumerate}
+	\item~[2 Points] Update your machine learning library. Please check in your implementation of decision trees in HW1 to your GitHub repository. Remember last time you created a folder ``Decision Tree". You can commit your code into that folder. Please also supplement README.md with concise descriptions about how to use your code to learn decision trees (how to call the command, set the parameters, etc). Please create two folders ``Ensemble Learning" and ``Linear Regression''  in the same level as the folder ``Decision Tree''.  
+
+	% 2a
+	\textit{Answer:}
+
+	GitHub commit link to use for this homework: \url{https://github.com/dalbyryan3/cs-6350-machine-learning/tree/19018a094f346cf37df6a357438fff0f383b4950} 
+	
+
+\item~[36 points] We will implement the boosting and bagging algorithms based on decision trees.  Let us test them on the bank marketing dataset in HW1 (bank.zip in Canvas). We use the same approach to convert the numerical features into binary ones. That is, we choose the media (NOT the average) of the attribute values (in the training set) as the threshold, and examine if the feature is bigger (or less) than the threshold.  For simplicity, we treat ``unknown'' as a particular attribute value, and hence we do not have any missing attributes for both training and test.
+\begin{enumerate}
+	\item~[8 points] Modify your decision tree learning algorithm to learn decision stumps ---  trees with only two levels. Specifically, compute the information gain to select the best feature to split the data. Then for each subset, create a leaf node. Note that your decision stumps must support weighted training examples. Based on your decision stump learning algorithm, implement AdaBoost algorithm. Vary the number of iterations T from $1$ to $500$, and examine the training and test errors. You should report the results in two figures. The first figure shows how the training and test errors vary along with T. The second figure shows  the training and test errors of all the decision stumps learned in each iteration. What can you observe and conclude? You have had the results for a fully expanded decision tree in HW1. Comparing them with Adaboost, what can you observe and conclude?
+
+	% 2a
+	\textit{Answer:}
+
+	After implementing AdaBoost I generated plots for the overall AdaBoost prediction errors as seen in \ref{fig:2a1} and the prediction errors on individual decision stumps learned at each the T value as seen in \ref{fig:2a2}. 
+	Both these plots appear reasonable. 
+	For the first figure the training and test errors decrease until around T=75 then the training and test errors settle out to an approximately constant value.
+	For the second figure the training and test errors vary greatly for each new decision stump learned. 
+	This is because AdaBoost explores new stumps as it reweights with each epoch, often exploring new decision stumps that are very bad by themselves but contribute to the final prediction to build a strong learner from weak learners (as seen in the first figure).
+
+	The decision trees learned in homework 1 could at best get approximately 0.11 (best was 0.107) test error using the entropy heuristic before overfitting to the training data (at a depth of 3 or 4). 
+	Comparing to this result AdaBoost gets very similar results using just decision stumps. 
+	As can be seen in \ref{fig:2a1}, the test error settles at approximately 0.107 with a best test error at around 50 epochs of 0.106. 
+	An interesting observation is that AdaBoost doesn't seem to overfit as quickly as the fully expanded decision trees used in homework 1.  
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2a_fig1.png}
+	\end{center}
+	\caption{AdaBoost Prediction Errors for 2a.}
+	\label{fig:2a1}
+	\end{figure}
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2a_fig2.png}
+	\end{center}
+	\caption{Individual Decision Stump Prediction Errors for 2a.}
+	\label{fig:2a2}
+	\end{figure}
+
+	
+	\item~[8 points] Based on your code of the decision tree learning algorithm (with information gain), implement a Bagged trees learning algorithm. Note that each tree should be fully expanded --- no early stopping or post pruning. Vary the number of trees from $1$ to $500$, report how the training and test errors vary along with the tree number in a figure. Overall, are bagged trees better than a single tree? Are bagged trees better than Adaboost? 
+
+	% 2b
+	\textit{Answer:}
+
+	After implementing bagged decision trees it can be seen that both training and testing prediction error decreases with an increasing number of bagged decision trees, although the prediction error is approximately constant after around 50 bagged decision trees.
+	This behavior can be seen in \ref{fig:2b}.
+
+	When compared to a single decision tree grown to completion, the bagged decision tree performs better.
+	In homework 1 the test error was approximately around 0.155 and the training error was around 0.013.
+	Shown in the plot the test error settles down around 0.135 which is an improvement over the same single tree.
+	The training error settles to around 0.015 which is just about equal to the training error with a single tree.
+
+	When compared to AdaBoost the bagged decision tree performed worse in terms of testing error.  
+	The bagged decision tree also had much lower training error since it was allowed to overfit the training data. 
+	This is because for this test we grew the decision trees without stopping which resulted it strong overfitting (as evidenced by the large gap between the training and test error) while for AdaBoost we used decision stumps which are harder to overfit.
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2b_fig1.png}
+	\end{center}
+	\caption{Bagged Decision Tree Prediction Errors for 2b.}
+	\label{fig:2b}
+	\end{figure}
+
+	\item~[6 points] Through the bias and variance decomposition, we have justified why the bagging approach is more effective than a single classifier/predictor. Let us verify it in real data. Experiment with the following procedure.
+	\begin{itemize}
+		\item REPEAT for 100 times
+		\item ~[STEP 1] Sample $1,000$ examples \textit{uniformly without replacement} from the training datset
+		\item ~[STEP 2] Run your bagged trees learning algorithm based on the $1,000$ training examples and learn $500$ trees.
+		\item END REPEAT 
+		\item Now you have $100$ bagged predictors in hand. For comparison, pick the first tree in each run to get $100$ fully expanded trees (i.e. single trees). 
+		\item 	For each of the test example, compute the predictions of the $100$ single trees. Take the average, subtract the ground-truth label, and take square to compute the bias term (see the lecture slides). Use all the predictions to compute the sample variance  as the approximation to the variance term (if you forget what the sample variance is, check it out 
+		\href{http://www.randomservices.org/random/sample/Variance.html}{here}). You now obtain the bias and variance terms of a single tree learner for one test example. You will need to compute them for all the test examples and then take average as your final estimate of the bias and variance terms for the single decision tree learner. You can add the two terms to obtain the estimate of the general squared error (that is, expected error w.r.t test examples). Now use your $100$ bagged predictors to do the same thing and estimate the general bias and variance terms, as well as the general squared error.  Comparing the results of the single tree learner and the bagged trees, what can you conclude?  What causes the difference?  
+	\end{itemize}
+
+	% 2c
+	\textit{Answer:}
+
+	After running the bagged tree bias-variance experiment it was found that: 
+
+	Single tree bias = 0.342, variance = 0.343, general squared error = 0.685
+
+	Bagged tree bias = 0.348, variance = 0.227, general squared error = 0.575.
+
+	This means we can conclude that the bagged predictor gave a very similar bias (0.348 vs single tree bias of 0.342) but gave much improved variance (0.227 vs single tree variance of 0.343).
+	Concluding we can say that a bagged predictor keeps a similar bias and yet will lower the variance when compared to the non-bagged version of the same predictor.
+	This difference can be attributed to how a bagged predictor is essentially doing an averaging of many random out-of-bag sampled predictors which means it reduces the variance of the prediction since it averages over many similar but randomized predictors.
+
+
+	 
+	\item~[8 points] Implement the random forest algorithm as we discussed in our lecture. Vary the number of random trees from $1$ to $500$. Note that you need to modify your tree learning algorithm to randomly select a subset of features before each split. Then use the information gain to select the best feature to split.  Vary the size of the feature subset from $\{2, 4, 6\}$.  Report in a figure how the training and test errors vary along with the number of random trees for each feature subset size setting. How does the performance compare with bagged trees? 
+
+	% 2d
+	\textit{Answer:}
+
+	The random forest prediction error plots versus number of random forest trees used can be seen for attribute sample sizes of 2 in \ref{fig:2d1}, 4 in \ref{fig:2d2}, and 6 in \ref{fig:2d3} (Note that \ref{fig:2d4} shows each of these plots overlayed).
+	There appears to be little difference between the different attribute samples sizes, although this may difference may be more pronounced when there are more attributes.
+
+	The random forest algorithm has similar but slightly better performance in terms of test error when compared to bagged trees.
+	As can be seen in \ref{fig:2d4} the test error gets closer to 0.125 than it does with bagged trees as shown in \ref{fig:2b}.
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2d_fig1.png}
+	\end{center}
+	\caption{Random Forest Prediction Errors with an Attribute Sample Size of 2 for 2d.}
+	\label{fig:2d1}
+	\end{figure}
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2d_fig2.png}
+	\end{center}
+	\caption{Random Forest Prediction Errors with an Attribute Sample Size of 4 for 2d.}
+	\label{fig:2d2}
+	\end{figure}
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.7]{2d_fig3.png}
+	\end{center}
+	\caption{Random Forest Prediction Errors with an Attribute Sample Size of 6 for 2d.}
+	\label{fig:2d3}
+	\end{figure}
+
+	\begin{figure}[h]
+	\begin{center}
+	\includegraphics[scale=0.6]{2d_fig4.png}
+	\end{center}
+	\caption{Random Forest Prediction Errors with Various Attribute Sample Sizes for 2d.}
+	\label{fig:2d4}
+	\end{figure}
+
+	\newpage
+	~\newpage
+	\item~[6 points] Following (c), estimate the bias and variance terms, and the squared error for a single random tree and the whole forest.  Comparing with the bagged trees, what do you observe? What can you conclude? 
+
+	% 2e
+	\textit{Answer:}
+
+	After running the random forest bias-variance experiment it was found that: 
+
+	Single tree bias = 0.342, variance = 0.360, general squared error = 0.702
+
+	Random forest bias = 0.353, variance = 0.208, general squared error = 0.561
+
+	Comparing to bagged trees we see that we get a similar bias value (0.353 compared to 0.348 for bagged trees) and even lower variance (0.208 compared to 0.227 for bagged trees). 
+	This can likely be attributed to how random forests are essentially bagged trees but with the possibility of holding out some attributes randomly to better explore the hypothesis space.
+
+	When compared to a single tree we see that the random forest gave a very similar bias (0.353 vs single tree bias of 0.342) but gave much improved variance (0.208 vs single tree variance of 0.360).
+	Thus we can conclude it is advantageous in terms of improving variance while maintaining similar bias to use random forest, and we also get a slight improvement in the variance of bagged trees.
+
+\end{enumerate}
+
+\item~[\textbf{Bonus}][10 points] In practice, to confirm the performance of your algorithm, you need to find multiple datasets for test (rather than one). You need to extract and process data by yourself. Now please use the credit default dataset in UCI repository \href{https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients}{https://archive.ics.uci.edu/ml/datasets/default+of+credit+card+clients}. Randomly choose $24000$ examples for training and the remaining $6000$ for test. Feel free to deal with continuous features. Run bagged trees, random forest, and Adaboost with decision stumps algorithms for $500$ iterations. Report in a figure how the training and test errors vary along with the number of iterations, as compared with a fully expanded single decision tree. Are the results consistent with the results you obtained from the bank dataset?
+
+	\item~[22 points] We will implement the LMS method for a linear regression task. The dataset is from UCI repository (\url{https://archive.ics.uci.edu/ml/datasets/Concrete+Slump+Test}). The task is to predict the real-valued SLUMP of the concrete, with $7$ features. The features and output are listed in the file ``concrete/data-desc.txt''. The training data are stored in the file ``concrete/train.csv'', consisting of $53$ examples. The test data are stored in ``concrete/test.csv'', and comprise of $50$ examples. In both the training and testing datasets, feature values and outputs are separated by commas. 
+	
+	\begin{enumerate}
+		\item~[8 points] Implement the batch gradient descent algorithm, and tune the learning rate $r$ to ensure the algorithm converges.  To examine convergence, you can watch the norm of the weight vector difference,  $\|w_{t} - w_{t-1}\|$,  at each step $t$.  if $\|w_{t} - w_{t-1}\|$ is  less than a tolerance level, say, $10^{-6}$, you can conclude that it converges. You can initialize your weight vector to be $\0$.  Please find an appropriate $r$ such that the algorithm converges. To tune $r$, you can start with a relatively big value, say, $r=1$, and then gradually decrease $r$, say $r=0.5, 0.25, 0.125, \ldots$, until you see the convergence. 
+		Report the learned weight vector, and the learning rate $r$. Meanwhile, please record the cost function  value of the training data at each step, and then draw a figure shows how the cost function changes along with steps. Use your final weight vector to calculate  the cost function value of the test data. 
+		%To do so, you can start $r$ to be relatively big, say, $r=1$, and then gradually decrease $r$. For a specific setting of $r$, you can calculate the cost function after each update and draw a curve showing how the cost function changes along with the number of updates. If you find the cost function on your curve tends to converge, you can conclude your algorithm convergences. 
+
+		% 4a
+		\textit{Answer:}
+
+		After training using batch gradient descent and achieving convergence with a learning rate of r = 0.01 the final weight vector was: 
+		
+		[0.92121943 0.80795431 0.87360662 1.3140235  0.13386883 1.5986033 1.01995518].
+		
+		The cost using the learned weight vector on the test data was 23.361.
+
+		The convergence criteria used was $\|w_{t} - w_{t-1}\| < 10^{-6}$.
+
+		A plot of the cost versus batch gradient steps can be seen in \ref{fig:4a1}.
+
+		\begin{figure}[h]
+		\begin{center}
+		\includegraphics[scale=0.7]{4a_fig1.png}
+		\end{center}
+		\caption{LMS Cost with Each Full Batch Gradient Update for 4a.}
+		\label{fig:4a1}
+		\end{figure}
+
+
+		\item~[8 points] Implement the stochastic gradient descent (SGD) algorithm. You can initialize your weight vector to be $\0$. Each step, you randomly sample a training example, and then calculate the stochastic gradient to update the weight vector.  Tune the learning rate $r$ to ensure your SGD converges. To check convergence, you can calculate the cost function of the training data after each stochastic gradient update, and draw a figure showing how the cost function values vary along with the number of updates. At the beginning, your curve will oscillate a lot. However, with an appropriate $r$, as more and more updates are finished, you will see the cost function tends to converge. Please report the learned weight vector, and the learning rate you chose, and the cost function value of the test data with your learned weight vector.   
+
+		% 4b
+		\textit{Answer:}
+
+		After training using stochastic gradient descent and achieving convergence with a learning rate of r = 0.01 the final weight vector was:
+		
+		[-0.04351662 -0.20504306 -0.2624905 0.5178707 0.00374489 0.26310961 0.03222385].
+
+		The cost using the learned weight vector on the test data was 22.892.
+
+		The convergence criteria used was $|J(w_{t}) - J(w_{t-1})| < 10^{-6}$.
+
+		A plot of the cost versus stochastic gradient steps can be seen in \ref{fig:4b1}.
+
+		\begin{figure}[h]
+		\begin{center}
+		\includegraphics[scale=0.7]{4b_fig1.png}
+		\end{center}
+		\caption{LMS Cost with Each Stochastic Gradient Update for 4b.}
+		\label{fig:4b1}
+		\end{figure}
+
+
+
+		\item~[6 points] We have discussed how to  calculate the optimal weight vector with an analytical form. Please calculate the optimal weight vector in this way. Comparing with the  weight vectors learned by batch gradient descent and stochastic gradient descent, what can you conclude? Why?
+
+		% 4c
+		\textit{Answer:}
+
+		After training using the direct analytical weight vector solution for LMS the final weight vector was:
+
+		[0.92154947 0.80829428 0.87397433 1.3142877 0.13392374 1.59904727 1.02029192].
+
+		The cost using the learned weight vector on the test data was 23.361.
+
+		The analytically calculated weight vector appears to have very similar (almost identical) weight values to the batch gradient descent weight vector as well as cost (as can be seen in the comparison below). 
+		This seems reasonable as batch gradient descent is minimizing the loss function just like the direct analytical solution finds directly.
+		On the other hand the stochastic gradient descent weight vector appears very different than the other two weight vectors and has a slightly lower cost on the test data.
+		This is actually a reasonable result since stochastic gradient descent with random sampling can be considered adding regularization in a sense, this means that a different weight vector can be learned that still does well in terms of LMS error on the training data but actually do slightly better on the test data.
+
+
+		\pagebreak
+		\textbf{Compared Weight Vectors for 4c:}
+
+		Batch w: 
+		
+		[0.92121943 0.80795431 0.87360662 1.3140235  0.13386883 1.5986033 1.01995518], 
+		
+		test data cost: 23.36084619600704
+
+		Stochastic w: 
+		
+		[-0.04351662 -0.20504306 -0.2624905   0.5178707   0.00374489  0.26310961 0.03222385], 
+
+		test data cost: 22.89225424335386
+
+		Analytical w: 
+		
+		[0.92154947 0.80829428 0.87397433 1.3142877  0.13392374 1.59904727 1.02029192], 
+		
+		test data cost: 23.361324404157937
+
+
+
+
+	\end{enumerate}
+
+\end{enumerate}
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

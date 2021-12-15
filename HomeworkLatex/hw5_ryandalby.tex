@@ -1,0 +1,563 @@
+\documentclass[12pt, fullpage,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+
+
+\newcommand{\semester}{Fall 2021}
+\newcommand{\assignmentId}{5}
+\newcommand{\releaseDate}{23 Nov, 2021}
+\newcommand{\dueDate}{11:59pm, 10 Dec, 2021}
+
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bw}{{\bf w}}
+
+\graphicspath{{./images/}}
+
+\title{CS 5350/6350: Machine Learning \semester}
+\author{Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+	Due: \dueDate}
+
+
+\title{CS 5350/6350: Machine Learning \semester}
+\author{Ryan Dalby- Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+  Due date: \dueDate}
+
+\begin{document}
+\maketitle
+
+\input{emacscomm}
+\newcommand{\Hcal}{\mathcal{H}} 
+{\footnotesize
+	\begin{itemize}
+		\item You are welcome to talk to other members of the class about
+		the homework. I am more concerned that you understand the
+		underlying concepts. However, you should write down your own
+		solution. Please keep the class collaboration policy in mind.
+		
+		\item Feel free to discuss the homework with the instructor or the TAs.
+		
+		\item Your written solutions should be brief and clear. You do not need to include original problem descriptions in your solutions. You need to
+		show your work, not just the final answer, but you do \emph{not}
+		need to write it in gory detail. Your assignment should be {\bf no
+			more than 20 pages}. Every extra page will cost a point.
+		
+		\item Handwritten solutions will not be accepted.
+		
+		
+		\item {\em Your code should run on the CADE machines}. \textbf{You should
+		include a shell script, {\tt run.sh}, that will execute your code
+		in the CADE environment. Your code should produce similar output to what you include in your report.}
+		
+		You are responsible for ensuring that the grader can execute the
+		code using only the included script. If you are using an
+		esoteric programming language, you should make sure that its
+		runtime is available on CADE.
+		
+		\item Please do not hand in binary files! We will {\em not} grade
+		binary submissions.
+		
+		\item The homework is due by \textbf{midnight of the due date}. Please submit
+		the homework on Canvas.
+		
+	\end{itemize}
+}
+
+
+\section{Paper Problems [40 points]}
+\begin{enumerate}
+	\item~[5 points] (Warm up) Suppose we have a composite function, $z = \sigma(y_1^2 +y_2y_3) $, where  $y_1 = 3x$, $y_2 = e^{-x}$, $y_3 = \mathrm{sin}(x)$, and $\sigma(\cdot)$ is the sigmoid activation function . Please use the chain rule to derive $\frac{\partial z}{\partial x}$ and  compute the derivative at $x=0$.
+
+	% 1
+	\textit{Answer:}
+
+	\(\)
+	\[
+		\frac{\partial z}{\partial x} = \sigma(9x^2 + e^{-x} \sin(x)) (1 - \sigma(9x^2 + e^{-x} \sin(x))) (18x - \sin(x) e^{-x} + e^{-x} cos(x))
+	\]
+	\[
+		\left. \frac{\partial z}{\partial x} \right|_{x=0} = \frac{1}{4}
+	\]
+
+
+
+	\begin{figure*}
+		\centering
+		\includegraphics[width=1.0\textwidth]{./3-layer-NN.pdf}
+		\caption{\small A three layer artificial neural network.} 
+		\label{fig:3nn}
+	\end{figure*}
+	
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{c|cc}
+			Layer & weigth  & value\\ 
+			\hline\hline
+			$1$ & $w_{01}^1$ & $-1$ \\ \hline
+			$1$ & $w_{02}^1$ & $1$ \\ \hline
+			$1$ & $w_{11}^1$ & $-2$ \\ \hline
+			$1$ & $w_{12}^1$ & $2$ \\ \hline
+			$1$ & $w_{21}^1$ & $-3$ \\ \hline
+			$1$ & $w_{22}^1$ & $3$ \\ \hline
+			$2$ & $w_{01}^2$ & $-1$ \\ \hline
+			$2$ & $w_{02}^2$ & $1$ \\ \hline
+			$2$ & $w_{11}^2$ & $-2$ \\ \hline
+			$2$ & $w_{12}^2$ & $2$ \\ \hline
+			$2$ & $w_{21}^2$ & $-3$ \\ \hline
+			$2$ & $w_{22}^2$ & $3$ \\ \hline
+			$3$ & $w_{01}^3$ & $-1$ \\ \hline
+			$3$ & $w_{11}^3$ & $2$ \\ \hline
+			$3$ & $w_{21}^3$ & $-1.5$ \\ \hline
+		\end{tabular}
+		\caption{Weight values.}
+		\label{tb:w}
+	\end{table}
+	
+	%forward pass
+	\item~[5 points] Suppose we have a three-layered feed-forward neural network in hand. The architecture and the weights are defined in Figure \ref{fig:3nn}. We use the sigmoid activation function. Note that the shaded variables are the constant feature $1$, \ie $x_0 = z_{0}^1 = z_{0}^2 = 1$. As we discussed in the class, they are used to account for the bias parameters. 
+	We have the values of all the edge weights in Table \ref{tb:w}. Now, given a new input example $\x=[1, 1, 1]$. Please use the forward pass to compute the output $y$. Please list every step in your computation, namely, how you calculate the variable value in each hidden unit, and how  you combine the variables in one layer to compute each variable in the next layer. Please be aware of the subtle difference in computing the variable value in the last layer (we emphasized it in the class). 
+	
+	%back-propgation
+
+	% 2
+	\textit{Answer:}
+
+	\textbf{Notation:}
+	\begin{enumerate}
+	\item[$\bullet$] $\z^m$ implies nodes of layer m where specifically for this network $\z^0 = \x$ and $\z^3 = y$.  
+	$\z^m$ can be indexed with $i$, $j$, or any indexing variable but $i$ implies indexing a ``previous'' layer like $\z^{m-1}$ while $j$ implies indexing a ``current'' layer like $\z^{m}$.
+
+	\item[$\bullet$] $w^{m}_{i,j}$ is the weight that connects the $i^{\text{th}}$ node in layer $m-1$ to the $j^{\text{th}}$ node in layer $m$ (Any weight with $j=0$ is a bias weight)
+
+	\item[$\bullet$] $:$ implies all indices (i.e. $\w_{:,j}$ is the vector formed by selecting all $i$ of $w_{i,j}$)
+
+	\item[$\bullet$] Define $s_j^m = \z^{m-1} \cdot \w_{:,j}$
+
+	\end{enumerate}
+
+	\textbf{Forward Pass Computations:}
+
+	For $m = 1$ or $m = 2$ of the given network
+	\[
+		z_j^m = \sigma(s_j^m) = \sigma(\z^{m-1} \cdot \w_{:,j}) 
+	\]
+
+	For $m = 3$ of the given network (i.e. output layer (layer $m = 3$), note only $j$ for $m = 3$ is $y$)
+	\[
+		z_j^m = s_j^m = \z^{m-1} \cdot \w_{:,j} = y 
+	\]
+
+	\textbf{Forward Pass Values:}
+	\[
+		\z^1 = [z_0^1, z_1^1, z_2^1] = [1, \sigma(-6), \sigma(6)] = [1, 0.002473, 0.9975]
+	\]
+	\[
+		\z^2 = [z_0^2, z_1^2, z_2^2] = [1, \sigma(-4), \sigma(4)] = [1, 0.01803, 0.9820]
+	\]
+	\[
+		y = -2.4369 
+	\]
+	
+	%logistic-regression
+	\item~[20 points] Suppose we have a training example  where the input vector is $\x = [1,1,1]$ and the label $y^* = 1$. We use a square loss for the prediction, 
+	\[
+	L(y, y^*) = \frac{1}{2}(y-y^*)^2.
+	\]
+	To make the prediction, we will use the 3 layer neural network shown in Figure \ref{fig:3nn}, with the sigmoid activation function. Given the weights specified in Table \ref{tb:w}, please use the back propagation (BP) algorithm to compute the derivative of the loss $L$ over all the weights, $\{\frac{\partial L}{\partial w^{m}_{ij}}\}$. Please list every step of your BP calculation. In each step, you should show how you compute and cache the new (partial) derivatives from the previous ones, and then how to calculate the partial derivative over the weights accordingly.  
+
+	% 3
+	\textit{Answer:}
+
+	\textbf{Notation:}
+	\begin{enumerate}
+	\item[$\bullet$] $\z^m$ implies nodes of layer m where specifically for this network $\z^0 = \x$ and $\z^3 = y$.  
+	$\z^m$ can be indexed with $i$, $j$, or any indexing variable but $i$ implies indexing a ``previous'' layer like $\z^{m-1}$ while $j$ implies indexing a ``current'' layer like $\z^{m}$.
+
+	\item[$\bullet$] $w^{m}_{i,j}$ is the weight that connects the $i^{\text{th}}$ node in layer $m-1$ to the $j^{\text{th}}$ node in layer $m$ (Any weight with $j=0$ is a bias weight)
+
+	\item[$\bullet$] $:$ implies all indices (i.e. $\w_{:,j}$ is the vector formed by selecting all $i$ of $w_{i,j}$)
+
+	\item[$\bullet$] Define $s_j^m = \z^{m-1} \cdot \w_{:,j}$
+
+	\end{enumerate}
+
+	\textbf{Backward Pass Computations:}
+	\[
+		\frac{\partial L}{\partial w^{m}_{ij}} = \frac{\partial L}{\partial z^{m}_{j}} \frac{\partial z^{m}_{j}}{\partial s_j^m} \frac{\partial s_j^m}{\partial w^{m}_{ij}} = \frac{\partial L}{\partial z^{m}_{j}} \frac{\partial z^{m}_{j}}{\partial s_j^m} z^{m-1}_{j} 
+	\]
+	\[
+		\frac{\partial L}{\partial z^{m}_{j}} = \sum_r{\frac{\partial L}{\partial z^{m+1}_{i}} \frac{\partial z^{m+1}_{i}}{\partial z^{m}_{j}}} = \sum_i{\frac{\partial L}{\partial z^{m+1}_{i}} \frac{\partial z^{m+1}_{i}}{\partial s^{m+1}_{i}} \frac{\partial s^{m+1}_{i}}{\partial z^{m}_{j}}} = \sum_i{\frac{\partial L}{\partial z^{m+1}_{i}} \frac{\partial z^{m+1}_{i}}{\partial s^{m+1}_{i}} w^{m+1}_{ji}}
+	\]
+
+	When $z_j^m = s_j^m$ (i.e. output layer (layer layer $m = 3$))
+	\[
+		\frac{\partial L}{\partial w^{m}_{ij}} = \frac{\partial L}{\partial z^{m}_{j}} z^{m-1}_{j}
+	\]
+	When $z_j^m = \sigma(s_j^m)$ 
+	\[
+		\frac{\partial L}{\partial w^{m}_{ij}} = \frac{\partial L}{\partial z^{m}_{j}} \sigma(s_j^m) (1 - \sigma(s_j^m)) z^{m-1}_{j} = \frac{\partial L}{\partial z^{m}_{j}}  z^{m}_{j} (1 - z^{m}_{j}) z^{m-1}_{j}
+	\]
+	When a given $z_i^{m+1} = s_i^{m+1}$ (i.e. output layer (layer $m = 3$))
+	\[
+		\frac{\partial L}{\partial z^{m}_{j}} = \sum_i{\frac{\partial L}{\partial z^{m+1}_{i}} w^{m+1}_{ji}}
+	\]
+	When a given $z_i^{m+1} = \sigma(s_i^{m+1})$
+	\[
+		\frac{\partial L}{\partial z^{m}_{j}} = \sum_i{\frac{\partial L}{\partial z^{m+1}_{i}} \sigma(s^{m+1}_{i}) (1 - \sigma(s^{m+1}_{i})) w^{m+1}_{ji}} = \sum_i{\frac{\partial L}{\partial z^{m+1}_{i}} z^{m+1}_{i} (1 - z^{m+1}_{i}) w^{m+1}_{ji}}
+	\]
+
+	\textbf{Backward Pass Values:}
+	Values are roughly in the order of calculation when conducting backward pass.
+
+	\[
+		\frac{\partial L}{\partial y} = (y - y^*) = -3.437
+	\]
+	\[
+		\frac{\partial L}{\partial w^3_{01}} = -3.437
+	\]
+	\[
+		\frac{\partial L}{\partial w^3_{11}} = -0.0620
+	\]
+	\[
+		\frac{\partial L}{\partial w^3_{21}} = -3.375
+	\]
+	\[
+		\frac{\partial L}{\partial z^2_1} = -6.874
+	\]
+	\[
+		\frac{\partial L}{\partial z^2_2} = 5.155 
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{01}} = -0.122
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{11}} = -0.000302
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{21}} = -0.122
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{02}} = -0.0912
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{12}} = 0.000226
+	\]
+	\[
+		\frac{\partial L}{\partial w^2_{22}} = 0.0910
+	\]
+	\[
+		\frac{\partial L}{\partial z^1_1} = 0.426
+	\]
+	\[
+		\frac{\partial L}{\partial z^1_2} = 0.639
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{01}} = 0.00105
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{11}} = 0.00105
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{21}} = 0.00105
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{02}} = 0.00158
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{12}} = 0.00158
+	\]
+	\[
+		\frac{\partial L}{\partial w^1_{22}} = 0.00158
+	\]
+	
+	%calculate the subgradient
+	\item~[10 points] Suppose we have the training dataset shown in Table \ref{tb:dt}. We want to learn a logistic regression model. We initialize all the model parameters with $0$.  We assume each parameter (\ie feature weights $\{w_1, w_2, w_3\}$ and the bias $w_0$ ) comes from a standard Gaussian prior distribution, 
+	\[
+	p(w_i) = \N(w_i|0,1) = \frac{1}{\sqrt{2\pi}}\exp(-\frac{1}{2}w_i^2)\;\;(0\le i\le 3).
+	\]
+	
+	\begin{itemize}
+		\item~[7 points] We want to obtain the  maximum a posteriori (MAP) estimation. Please write down the objective function, namely, the log joint probability, and derive the gradient of the objective function. 
+
+			% 4a
+			\textit{Answer:}
+
+			Objective function (written as a minimization objective):
+			\[
+				J = \min_{\w} \sum_i^m{(1 + e^{-y_i \w^{\top} \x_i})} + \frac{1}{2} \w^{\top} \w = \min_{\w} \sum_i^m{\frac{1}{\sigma(y_i \w^{\top} \x_i)}} + \frac{1}{2} \w^{\top} \w
+			\]
+
+			Gradient of objective function (written as a minimization objective): 
+			\[
+				\nabla_{w_{j}} J = -(1 - \sigma(y_i \w^{\top} \x_i)) (y_i x_j) + w_j
+			\]
+
+	
+		\item~[3 points] We set the learning rates for the first three steps to $\{0.01, 0.005, 0.0025\}$.  Please list the stochastic gradients of the objective w.r.t the model parameters for the first three steps, when using the stochastic gradient descent algorithm. 
+
+			% 4b
+			\textit{Answer:}
+
+			Step 1:
+
+			\[
+			\nabla \J = [-0.5, -0.250, 0.500, -0.150], \w = [0.005, 0.00250, -0.00500, 0.00150]
+			\]
+
+			Step 2:
+
+			\[
+			\nabla \J = [0.505, -0.498, -1.005, -0.998], \w = [0.002475, 0.00500, 0.000, 0.00650]
+			\]
+
+			Step 3:
+
+			\[
+			\nabla \J = [-0.494, -0.740, -0.994, 1.250], \w = [0.00371, 0.00685, 0.000250, 0.00338]
+			\]
+
+	\end{itemize}
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{ccc|c}
+			$x_1$ & $x_2$ & $x_3$ &  $y$\\ 
+			\hline\hline
+			$0.5$ & $-1$ & $0.3$ & $1$ \\ \hline
+			$-1$ & $-2$ & $-2$ & $-1$\\ \hline
+			$1.5$ & $0.2$ & $-2.5$ & $1$\\ \hline
+		\end{tabular}
+	\caption{Dataset} 
+	\label{tb:dt}
+	\end{table}
+
+	
+\end{enumerate}
+
+\section{Practice [62 points + 60 bonus ]}
+\begin{enumerate}
+	\item~[2 Points] Update your machine learning library. Please check in your implementation of SVM algorithms. Remember last time you created the folders ``SVM". You can commit your code into the corresponding folders now. Please also supplement README.md with concise descriptions about how to use your code to run these algorithms (how to call the command, set the parameters, etc). Please create new folders ``Neural Networks" and ``Logistic Regression''  in the same level as these folders.  \textit{After the completion of the homework this time, please check in your implementation accordingly. }
+
+	% 1
+	\textit{Answer:}
+
+	Github commit for this homework: \url{https://github.com/dalbyryan3/cs-6350-machine-learning/tree/deecb5d5ac7e983a9c65cbfbd4c82d0a165a1aa3}
+
+
+	\item~[58 points] Now let us implement a three-layer artificial neural network for classification. We will use the dataset, ``bank-note.zip'' in Canvas. The features and labels are listed in the file ``classification/data-desc.txt''. The training data are stored in the file ``classification/train.csv'', consisting of $872$ examples. The test data are stored in ``classification/test.csv'', and comprise of $500$ examples. In both the training and test datasets, feature values and labels are separated by commas.
+	The architecture of the neural network resembles Figure \ref{fig:3nn}, but we allow an arbitrary number of  units in hidden layers (Layer 1  and 2). So please ensure your implementation has such flexibility. We will use the sigmoid activation function. 
+
+\begin{enumerate}
+	\item ~[25 points] Please implement the back-propagation algorithm to compute the gradient with respect to all the edge weights given one training example.  For debugging, you can use the paper problem 3 and verify if your algorithm returns the same derivatives as you manually did. 
+
+	% 2a
+	\textit{Answer:}
+
+	Forward pass paper problems:
+
+	score = [[-2.437]],
+	
+	S1 = [[-6  6]], 
+
+	Z1 = [[0.00247 0.9975 ]],
+
+	S2 = [[-4  4]],
+
+	Z2 = [[0.01803 0.982  ]]
+
+
+	Forward pass results:
+
+	score = [[-2.43689523]],
+
+	S1 = [[-6  6]], 
+
+	Z1 = [[0.00247262 0.99752738]],
+
+	S2 = [[-3.99752738  3.99752738]],
+
+	Z2 = [[0.01802994 0.98197006]]
+
+
+	Backward pass paper problems:
+
+	dW1 = [[0.00105 0.00158]
+	[0.00105 0.00158]],
+
+	db1 = [0.00105 0.00158], 
+	
+	dW2 = [[-0.0003017  0.000226 ]
+	[-0.1217     0.091    ]],
+	
+	db2 = [-0.122    0.09125],
+	
+	dW3 = [[-0.06197]
+	[-3.375  ]],
+	
+	db3 = [-3.4369]
+
+	Backward pass results:
+	dW1 = [[0.00105061 0.00157591]
+	[0.00105061 0.00157591]],
+	
+	db1 = [0.00105061 0.00157591], 
+	
+	dW2 = [[-0.00030092  0.00022569]
+	[-0.12139856  0.09104892]],
+	
+	db2 = [-0.12169947  0.09127461],
+	
+	dW3 = [[-0.061967  ]
+	[-3.37492823]],
+	
+	db3 = [-3.43689523]
+
+	
+	\item~[17 points] Implement the stochastic gradient descent algorithm to learn the neural netowrk from the training data.  	Use the schedule of learning rate: $\gamma_t = \frac{\gamma_0}{1+\frac{\gamma_0}{d}t}	$.  Initialize the edge weights with random numbers generated from the standard Gaussian distribution. We restrict the width, \ie the number of nodes, of each hidden layer (\ie Layer 1 \& 2 ) to be identical.  Vary the width from $\{5, 10, 25, 50, 100\}$. Please tune $\gamma_0$ and $d$ to ensure convergence. Use the curve of the objective function (along with the number of updates) to diagnosis the convergence.  Don't forget to shuffle the training examples at the start of each epoch. Report the training and test error for each setting of the width.
+
+	% 2b
+	\textit{Answer:}
+
+	Note: $\gamma_0 = 7e-05$ and $d = 0.1$ was used for these results along with gaussian standard normal sampled weight initialization.
+
+	\begin{center}
+		\includegraphics[scale=0.7]{2b_h5.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2b_h10.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2b_h25.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2b_h50.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2b_h100.png}
+	\end{center}
+	\begin{center}
+
+	\begin{tabular}{|c|c|c|}
+		\hline
+		H & Training Error & Test Error \\ 
+		\hline
+		5 & 0.383 & 0.386 \\
+		\hline
+		10 & 0.219 & 0.224 \\
+		\hline
+		25 & 0.0229 & 0.028 \\
+		\hline
+		50 & 0.0115 & 0.016 \\
+		\hline
+		100 & 0.0138 & 0.018 \\
+		\hline
+	\end{tabular}
+	\end{center}
+	
+	
+	
+
+	
+	\item~[10 points]. Now initialize all the weights with $0$, and run your training algorithm again. What is your training and test error? What do you observe and  conclude?
+
+	% 2c
+	\textit{Answer:}
+
+	Note: $\gamma_0 = 7e-05$ and $d = 0.1$ was used for these results along with $0$ weight initialization.
+
+	\begin{center}
+		\includegraphics[scale=0.7]{2c_h5.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2c_h10.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2c_h25.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2c_h50.png}
+	\end{center}
+	\begin{center}
+		\includegraphics[scale=0.7]{2c_h100.png}
+	\end{center}
+
+	\begin{center}
+	\begin{tabular}{|c|c|c|}
+		\hline
+		H & Training Error & Test Error \\ 
+		\hline
+		5 & 0.446 & 0.442 \\
+		\hline
+		10 & 0.446 & 0.442 \\
+		\hline
+		25 & 0.446 & 0.442 \\
+		\hline
+		50 & 0.446 & 0.442 \\
+		\hline
+		100 & 0.446 & 0.442 \\
+		\hline
+	\end{tabular}
+	\end{center}
+
+	As can be seen the network weight initialization is very important to getting good results.
+	With $0$ weight initialization it is very hard to get the network to get good error results, it is possible for different $\gamma_0$ and $d$ values but for comparisons sake I left the parameters the same as the random weight initialization using sampling from a standard normal gaussian.
+	With random weight initialization I was able to get good results, especially as the number of hidden nodes increased.
+	Overfitting can be seen as beginning to occur in many of the plots as the loss begins to increase after many epoch.
+	Do also note that because of stochastic gradient descent and how we have not guarantee of optimizing a convex function it can be seen the loss doesn't necessarily converge to a global optima. The optimum found for the zero weight initialization is particularly bad in terms of training and test error.
+
+	\item~[6 points]. As compared with the performance of SVM (and the logistic regression you chose to implement it; see Problem 3), what do you conclude (empirically) about the neural network?
+
+	% 2d
+	\textit{Answer:}
+	
+	Comparing the results to SVM it is obvious that neural networks are generally much harder to train than SVM.
+	Results of both can be just as good for this dataset which both SVM and neural networks can learn a hypothesis than gives near 0 training and test error for this dataset.
+	Neural networks are not necessarily a convex objective and may find non-global optima.
+	SVM when trained using the dual objective and quadratic optimization can find a global optima, although often times a local optima can be just as good or even times better in terms of error on an unseen test set.
+	In the end, neural networks can be very great if trained correctly.
+	
+	\item~[\textbf{Bonus}]~[30 points] Please use PyTorch (or TensorFlow if you want) to fulfill the neural network training and prediction. Please try two activation functions, ``tanh'' and ``RELU''.  For ``tanh", please use the ``Xavier' initialization; and for ``RELU'', please use the ``he'' initialization. You can implement these initializations by yourselves or use PyTorch (or TensorFlow) library. 
+	Vary the depth from $\{3, 5, 9\} $ and width from $\{5, 10, 25, 50, 100\}$. Pleas use the Adam optimizer for training. The default settings of Adam should be sufficient (\eg initial learning rate is set to $10^{-3}$). 
+	 Report the training and test error with each (depth, width) combination. What do you observe and conclude? Note that, we won't provide any link or manual for you to work on this bonus problem. It is YOUR JOB to search the documentation, find  code snippets, test, and debug with PyTorch (or TensorFlow) to ensure the correct usage. This is what all machine learning practitioners do in practice. 
+	
+\end{enumerate} 
+
+\item~[\textbf{Bonus}]~[30 points] We will implement the logistic regression model with stochastic gradient descent. We will use the  dataset ``bank-note.zip'' in Canvas.  Set the maximum number of epochs $T$ to 100. Don't forget to shuffle the training examples at the start of each epoch. Use the curve of the objective function (along with the number of updates) to diagnosis the convergence. We initialize all the model parameters with $0$.
+
+\begin{enumerate}
+	\item~[10 points] We will first obtain the MAP estimation. In order for that, we assume each model parameter comes from a Gaussian prior distribution, 
+	\[
+	p(w_i ) = \N(w_i |0, v)=\frac{1}{\sqrt{2\pi v}} \exp(-\frac{1}{2v}w_i^2)
+	\]
+	where $v$ is the variance.  From the paper problem 4, you should be able to write down  the objective function and derive the gradient. Try the prior variance $v$ from $\{0.01, 0.1, 0.5, 1, 3, 5, 10, 100\}$. 
+	Use the schedule of learning rate: $\gamma_t = \frac{\gamma_0}{1+\frac{\gamma_0}{d}t}	$. Please tune $\gamma_0$ and $d$ to ensure convergence. For each setting of variance, report your training and test error. 
+	\item~[5 points] We will then obtain the maximum likelihood (ML) estimation. That is, we do not assume any prior over the model parameters, and just maximize the logistic likelihood of the data. Use the same learning rate schedule. Tune $\gamma_0$ and $d$ to ensure convergence. For each setting of variance, report your training and test error. 
+	
+	\item~[3 points] How is the training and test performance of the MAP estimation compared with the ML estimation? What can you conclude? What do you think of $v$, as compared to  the hyperparameter $C$ in SVM?
+\end{enumerate}
+
+	\item~[2 Points]  After the completion, please upload the implementation to your Github repository immediately.  How do you like your own machine learning library? \textit{Although it is still light weighted, it is the proof of  your great efforts and achievement  in this class! It is an excellent start of your journey to machine learning.  Wish you further success in your future endeavours!}
+
+	% 4
+	\textit{Answer:}
+
+	My machine learning library is pretty good.
+	It shows some of the fundamental algorithms in machine learning and in many ways is usable to build machine learning based models on new data.
+
+	
+\end{enumerate}
+
+
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

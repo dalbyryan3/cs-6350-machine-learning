@@ -1,0 +1,840 @@
+\documentclass[12pt, fullpage,letterpaper]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+% Note using tikz for a decision tree this is sourced from https://tex.stackexchange.com/questions/289642/how-to-draw-a-proper-decision-tree
+\usepackage{tikz,forest}
+\usetikzlibrary{arrows.meta}
+
+\newcommand{\semester}{Fall 2021}
+\newcommand{\assignmentId}{1}
+\newcommand{\releaseDate}{7 Sep, 2021}
+\newcommand{\dueDate}{11:59pm, 24 Sep, 2021}
+
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bw}{{\bf w}}
+
+\title{CS 5350/6350: Machine Learining \semester}
+\author{Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+	Due: \dueDate}
+
+
+\title{CS 5350/6350: Machine Learining \semester}
+\author{Ryan Dalby- Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+  Due date: \dueDate}
+
+\begin{document}
+\maketitle
+
+\input{emacscomm}
+{\footnotesize
+	\begin{itemize}
+		\item You are welcome to talk to other members of the class about
+		the homework. I am more concerned that you understand the
+		underlying concepts. However, you should write down your own
+		solution. Please keep the class collaboration policy in mind.
+		
+		\item Feel free discuss the homework with the instructor or the TAs.
+		
+		\item Your written solutions should be brief and clear. You need to
+		show your work, not just the final answer, but you do \emph{not}
+		need to write it in gory detail. Your assignment should be {\bf no
+			more than 20 pages}. Not that you do not need to include the problem description. Every extra page will cost a point.
+		
+		\item Handwritten solutions will not be accepted.
+		
+		
+		\item {\em Your code should run on the CADE machines}. You should
+		include a shell script, {\tt run.sh}, that will execute your code
+		in the CADE environment. Your code should produce similar output
+		to what you include in your report.
+		
+		You are responsible for ensuring that the grader can execute the
+		code using only the included script. If you are using an
+		esoteric programming language, you should make sure that its
+		runtime is available on CADE.
+		
+		\item Please do not hand in binary files! We will {\em not} grade
+		binary submissions.
+		
+		\item The homework is due by \textbf{midnight of the due date}. Please submit
+		the homework on Canvas.
+		
+		\item Note the bonus questions are for \textbf{both 5350 and 6350} students. If a question is mandatory for 6350, we will highlight it explicitly. 
+		
+	\end{itemize}
+}
+
+
+\section{Decision Tree [40 points + 10 bonus]}
+\begin{table}[h]
+	\centering
+	\begin{tabular}{cccc|c}
+		$x_1$ & $x_2$ & $x_3$ & $x_4$ & $y$\\ 
+		\hline\hline
+		0 & 0 & 1 & 0 & 0 \\ \hline
+		0 & 1 & 0 & 0 & 0 \\ \hline
+		0 & 0 & 1 & 1 & 1 \\ \hline
+		1 & 0 & 0 & 1 & 1 \\ \hline
+		0 & 1 & 1 & 0.& 0\\ \hline
+		1 & 1 & 0 & 0 & 0\\ \hline
+		0 & 1 & 0 & 1 & 0\\ \hline
+	\end{tabular}
+	\caption{Training data for a Boolean classifier}
+	%\caption{Training data for the alien invasion problem.}\label{tb-alien-train}
+\end{table}
+
+\begin{enumerate}
+\item~[7 points] Decision tree construction. 
+\begin{enumerate}
+\item~[5 points] Use the ID3 algorithm with information gain to learn a decision tree from the training dataset in Table 1. Please list every step in your tree construction, including the data subsets, the attributes, and how you calculate the information gain of each attribute and how you split the dataset according to the selected attribute. Please also give a full structure of the tree. You can manually  draw the tree structure,  convert the picture into a PDF/EPS/PNG/JPG format and include it in your homework submission; or instead, you can  represent the tree with a conjunction of prediction rules as we discussed in the lecture. 
+% 1a 
+\medskip  
+
+\textit{Answer:} 
+
+To construct a decision tree using ID3 I followed the algorithmic steps to determine the best attribute to split the current set of examples at each node. First I calculated the entropy of the whole set of examples, $S$, which was $H_S = 0.598$
+Next I found the information gain of $S$, with respect to each attribute using
+\[
+    G(S,A) = H(S) - \sum_{v \in Values(A)}{\frac{|S_v|H(S_v)}{|S|}} \quad 
+    \text{where: } H(S) = -\sum_{i=1}^k {p_i ln(p_i)}.
+\] 
+Using information loss I found the following information gain values
+\[
+    G(S,x_1) = 0.043, 
+    G(S,x_2) = 0.325, 
+    G(S,x_3) = 0.004, 
+    G(S,x_4) = 0.325.
+\]
+From this I chose to split on attribute $x_2$ since it had the highest information gain (tied with $x_4$). Now the $x_2=1$ node contained 4 examples all with label $y = 0$, so no more splitting for this node was need. 
+Looking at the remaining node, $x_2=0$, it contained 1 $y=0$ example and 2 $y=1$ examples which make up the subset $S_{x_2=0}$. The entropy of all the examples in $S_{x_2=0}$ was $H_{S_{x_2}} = 0.637$. 
+It was straight forward to choose the split for $S_{x_2=0}$ since splitting on $x_4$ gives an information gain $G(S_{x_2=0},x_4)= 0.637$ which means the expected entropy would be 0 if we split on $x_4$. 
+Thus $x_4$ was chosen for the split resulting in the examples in $S_{x_2=0}$ being split exactly into the correct labels.
+The final decision tree is shown in \ref{fig:1a}.
+
+\begin{figure}[h]
+\begin{center}
+\begin{forest} 
+for tree={circle, draw, l sep=8pt, s sep=80pt}
+[$x_2$, tikz={\draw[{Latex}-, thick] (.north) --++ (0,1);}
+    [$x_4$,edge label={node[midway,left] {0}}
+      [\textbf{0},edge label={node[midway,left] {0}}] 
+      [\textbf{1},edge label={node[midway,right] {1}}] 
+    ]
+    [\textbf{0},edge label={node[midway,right] {1}}] 
+]
+\end{forest}
+\end{center}
+\caption{Decision tree representing 1a.}
+\label{fig:1a}
+\end{figure}
+
+\item~[2 points] Write the boolean function which your decision tree represents. Please use a table to describe the function --- the columns are the input variables and label, \ie $x_1$, $x_2$, $x_3$, $x_4$ and $y$; the rows are different input and  function values. 
+
+
+
+% 1b 
+\textit{Answer:} 
+
+\[
+f(x_2, x_4) = (NOT\; x_2)\; AND\; x_4 = (!\; x_2)\; \cap\; x_4 
+\]
+
+\begin{table}[h]
+	\centering
+	\begin{tabular}{cc|c}
+		$x_2$ & $x_4$ & $y$\\ 
+		\hline\hline
+		0 & 0 & 0 \\ \hline
+		1 & 0 & 0 \\ \hline
+		0 & 1 & 1 \\ \hline
+		0 & 1 & 1 \\ \hline
+		1 & 0 & 0 \\ \hline
+		1 & 0 & 0 \\ \hline
+		1 & 1 & 0 \\ \hline
+	\end{tabular}
+	\caption{Boolean function which describes decision tree in 1a.}
+\end{table}
+\end{enumerate}
+
+\item~[17 points] Let us use a training dataset to learn a decision tree about whether to play tennis (\textbf{Page 43, Lecture: Decision Tree Learning}, accessible by clicking the link \href{http://www.cs.utah.edu/~zhe/teach/pdf/decision-trees-learning.pdf}{http://www.cs.utah.edu/\textasciitilde zhe/teach/pdf/decision-trees-learning.pdf}). In the class, we have shown how to use information gain to construct the tree in ID3 framework.  
+\begin{enumerate}
+	\item~[7 points] Now, please use majority error (ME) to calculate the gain, and select the best feature to split the data in ID3 framework. As in problem 1, please list every step in your tree construction,  the attributes,  how you calculate the gain of each attribute and how you split the dataset according to the selected attribute. Please also give a full structure of the tree.
+
+    % 2a 
+    \textit{Answer:} 
+
+    To construct a decision tree using ID3 I followed the algorithmic steps to determine the best attribute to split the current set of examples at each node, this time using majority error (ME()) as the criteria to determine the gain. Majority error is defined as the error if the majority class was chosen. The gain is then defined using ME as 
+    \[
+    G(S,A) = \text{ME}(S) - \sum_{v \in Values(A)}{\frac{|S_v|\text{ME}(S_v)}{|S|}} 
+    \] 
+
+    I found the ME of all the examples to be ME$(S) = \frac{5}{14} = 0.357$. I then found the gain of $S$ with respect to each attribute which was calculated as 
+    \[
+        G(S,\text{Outlook}) = 0.0714,\quad
+        G(S,\text{Temperature}) = 0, 
+    \]
+    \[
+        G(S,\text{Humidity}) = 0.0714,\quad
+        G(S,\text{Wind}) = 0.
+    \]
+    I then chose to have the first split be on Outlook since it had the highest gain (tied with Humidity). This created 3 subsets of $S$, $S_{\text{Sunny}}$ with 5 examples, $S_{\text{Overcast}}$ with 4 examples, and $S_{Rainy}$ with 5 examples.
+
+    For $S_{\text{Sunny}}$ there are 2 (+) and 3 (-) examples. 
+    The ME for this subset is ME($S_{\text{Sunny}}) = 0.4$. Looking at the gain with respect to each remaining attributes the following was found
+    \[
+        G(S_{\text{Sunny}},\text{Temperature}) = 0.2,
+        G(S_{\text{Sunny}},\text{Humidity}) = 0.4,
+        G(S_{\text{Sunny}},\text{Wind}) = 0. 
+    \]
+    We can see that splitting on Humidity would result in a subsequent majority error of 0 for this subset and thus we are done for this subset.
+    
+    For $S_{\text{Overcast}}$ we have 4 (+) examples so we have a majority error of 0, thus we are done with this subset.
+
+    For $S_{Rainy}$ there are 3 (+) and 2 (-) examples. 
+    The ME for this subset is ME($S_{\text{Rainy}}) = 0.4$. Looking at the gain with respect to each remaining attributes the following was found
+    \[
+        G(S_{\text{Rainy}},\text{Temperature}) = 0,
+        G(S_{\text{Rainy}},\text{Humidity}) = 0,
+        G(S_{\text{Rainy}},\text{Wind}) = 0.4. 
+    \]
+    We can see that splitting on Wind would result in a subsequent majority error of 0 for this subset and we are done for this subset.
+
+    In the end we can see the final decision tree in \ref{fig:2a}.
+
+    \begin{figure}[h]
+    \begin{center}
+    \begin{forest} 
+    for tree={circle, draw, l sep=20pt, s sep=80pt}
+    [Outlook, tikz={\draw[{Latex}-, thick] (.north) --++ (0,1);}
+        [Humidity,edge label={node[midway,left] {Sunny}}
+        [\textbf{-},edge label={node[midway,left] {High}}] 
+        [\textbf{+},edge label={node[midway,right] {Normal}}] 
+        ]
+        [\textbf{+},edge label={node[midway,left] {Overcast}}]
+        [Wind,edge label={node[left,midway] {Rainy}}
+        [\textbf{-},edge label={node[left,midway] {Strong}}] 
+        [\textbf{+},edge label={node[right,midway] {Weak}}] 
+        ]
+    ]
+    \end{forest}
+    \end{center}
+    \caption{Decision tree representing 2a.}
+    \label{fig:2a}
+    \end{figure}
+
+	\item~[7 points] Please use gini index (GI) to calculate the gain, and conduct tree learning with ID3 framework. List every step and the tree structure.
+
+    % 2b 
+    \textit{Answer:} 
+
+    To construct a decision tree using ID3 I followed the algorithmic steps to determine the best attribute to split the current set of examples at each node, this time using gini index (GI()) as the criteria to determine the gain. Gini index and gain using the gini index is defined as 
+    \[
+        G(S,A) = \text{GI}(S) - \sum_{v \in Values(A)}{\frac{|S_v|\text{GI}(S_v)}{|S|}} \quad 
+        \text{where: } \text{GI}(S) = 1 - \sum_{k=1}^K {p_k^2}.
+    \] 
+    I found the GI of all the examples to be GI$(S) = 0.459$. I then found the gain of $S$ with respect to each attribute which was calculated as 
+    Using gini index I found the following gain values
+    \[
+        G(S,\text{Outlook}) = 0.116,\quad
+        G(S,\text{Temperature}) = 0.019, 
+    \]
+    \[
+        G(S,\text{Humidity}) = 0.092,\quad
+        G(S,\text{Wind}) = 0.031.
+    \]
+    I then chose to have the first split be on Outlook since it had the highest gain. This split created 3 subsets of $S$, $S_{\text{Sunny}}$ with 5 examples, $S_{\text{Overcast}}$ with 4 examples, and $S_{Rainy}$ with 5 examples.
+
+    For $S_{\text{Sunny}}$ there are 2 (+) and 3 (-) examples. 
+    The GI for this subset is GI($S_{\text{Sunny}}) = 0.48$. Looking at the gain with respect to each remaining attributes the following was found
+    \[
+        G(S_{\text{Sunny}},\text{Temperature}) = 0.28,
+        G(S_{\text{Sunny}},\text{Humidity}) = 0.48,
+        G(S_{\text{Sunny}},\text{Wind}) = 0.014. 
+    \]
+    We can see that splitting on Humidity would result in a subsequent gini index of 0 for this subset and thus we are done for this subset.
+    
+    For $S_{\text{Overcast}}$ we have 4 (+) examples so we have a gini index of 0, thus we are done with this subset.
+
+    For $S_{Rainy}$ there are 3 (+) and 2 (-) examples. 
+    The GI for this subset is GI($S_{\text{Rainy}}) = 0.48$. Looking at the gain with respect to each remaining attributes the following was found
+    \[
+        G(S_{\text{Rainy}},\text{Temperature}) = 0.013,
+        G(S_{\text{Rainy}},\text{Humidity}) = 0.013,
+        G(S_{\text{Rainy}},\text{Wind}) = 0.48. 
+    \]
+    We can see that splitting on Wind would result in a subsequent gini index of 0 for this subset and we are done for this subset.
+
+    In the end we can see the final decision tree in \ref{fig:2b}.
+
+    \begin{figure}[h]
+    \begin{center}
+    \begin{forest} 
+    for tree={circle, draw, l sep=20pt, s sep=80pt}
+    [Outlook, tikz={\draw[{Latex}-, thick] (.north) --++ (0,1);}
+        [Humidity,edge label={node[midway,left] {Sunny}}
+        [\textbf{-},edge label={node[midway,left] {High}}] 
+        [\textbf{+},edge label={node[midway,right] {Normal}}] 
+        ]
+        [\textbf{+},edge label={node[midway,left] {Overcast}}]
+        [Wind,edge label={node[left,midway] {Rainy}}
+        [\textbf{-},edge label={node[left,midway] {Strong}}] 
+        [\textbf{+},edge label={node[right,midway] {Weak}}] 
+        ]
+    ]
+    \end{forest}
+    \end{center}
+    \caption{Decision tree representing 2b.}
+    \label{fig:2b}
+    \end{figure}
+
+	\item~[3 points] Compare the two trees you just created with the one we built in the class (see Page 62 of the lecture slides). Are there any differences? Why? 
+
+    % 2c 
+    \textit{Answer:} 
+
+    There are no differences between any of the 3 trees. This is merely coincidence though, since using metrics of entropy, majority error, and gini index are all inherently different in the way they calculate the game. 
+    Although, a key takeaway is that each metric builds a similar tree. This means that they are all useful metrics for creating a decision tree because they can allow us to determine a good attribute to split on. They are all essentially different good notions of what is a good split given the current subset of examples you are looking at.
+
+\end{enumerate}
+
+\item~[16 points] Continue with the same training data in Problem 2. Suppose before the tree construction, we receive one more training instance where Outlook's value is missing: \{Outlook: Missing, Temperature: Mild, Humidity: Normal, Wind: Weak, Play: Yes\}. 
+\begin{enumerate}
+\item~[3 points] Use the most common value in the training data as the missing  value, and calculate the information gains of the four features. Note that if there is a tie for the most common value, you can choose any value in the tie.  Indicate the best feature. 
+
+% 3a 
+\textit{Answer:} 
+
+After calculating the gain with respect to each attribute with the unknown Outlook value for the new example taking Sunny (tied with Rainy for most common value in the training data) the following gain values were found using the formula in problem 1a. (using $ln()$). Also note $H(S) = 0.637$ for these calculations.
+\[
+    G(S,\text{Outlook}) = 0.137,\quad
+    G(S,\text{Temperature}) = 0.023, 
+\]
+\[
+    G(S,\text{Humidity}) = 0.117,\quad
+    G(S,\text{Wind}) = 0.042.
+\]
+Thus the feature to split on for $S$ with the new example would be Outlook.
+
+
+\item~[3 points] Use the most common value among the  training instances with the same label, namely, their attribute "Play" is "Yes", and calculate the information gains of the four features. Again if there is a tie, you can choose any value in the tie. Indicate the best feature.
+
+% 3b 
+\textit{Answer:} 
+
+After calculating the gain with respect to each attribute with the unknown Outlook value for the new example taking the value of Overcast (the most common value among training instances of the same label) the following gain values were found using the formula in problem 1a. (using $ln()$). Also note $H(S) = 0.637$ for these calculations.
+\[
+    G(S,\text{Outlook}) = 0.188,\quad
+    G(S,\text{Temperature}) = 0.023, 
+\]
+\[
+    G(S,\text{Humidity}) = 0.117,\quad
+    G(S,\text{Wind}) = 0.042.
+\]
+Thus the feature to split on for $S$ with the new example would be Outlook.
+
+
+\item~[3 points] Use the fractional counts to infer the feature values, and then calculate the information gains of the four features. Indicate the best feature.
+
+% 3c 
+\textit{Answer:} 
+
+After calculating the gain with respect to each attribute with the unknown Outlook value for the new example taking fractional values of 5/14(0.357) Sunny, 4/14(0.286) Overcast, and 5/14(0.357) Rainy the following gain values were found using the formula in problem 1a. (using $ln()$). Also note $H(S) = 0.637$ for these calculations.
+\[
+    G(S,\text{Outlook}) = 0.156,\quad
+    G(S,\text{Temperature}) = 0.023, 
+\]
+\[
+    G(S,\text{Humidity}) = 0.117,\quad
+    G(S,\text{Wind}) = 0.042.
+\]
+Thus the feature to split on for $S$ with the new example would be Outlook.
+
+\item~[7 points] Continue with the fractional examples, and build the whole free with information gain. List every step and the final tree structure.  
+
+% 3d 
+\textit{Answer:} 
+
+Following what I found in 3c. I determined the best attribute to split on first would be Outlook since it had the highest calculated information gain. 
+This split created 3 subsets of $S$, $S_{\text{Sunny}}$ with 5.357 examples, $S_{\text{Overcast}}$ with 4.286 examples, and $S_{Rainy}$ with 5.357 examples.
+
+For $S_{\text{Sunny}}$ there are 2.357 (+) and 3 (-) examples. 
+The entropy for this subset is H($S_{\text{Sunny}}) = 0.686$. Looking at the gain with respect to each remaining attributes the following was found
+\[
+    G(S_{\text{Sunny}},\text{Temperature}) = 0.386,
+    G(S_{\text{Sunny}},\text{Humidity}) = 0.686,
+    G(S_{\text{Sunny}},\text{Wind}) = 0.0043. 
+\]
+We can see that splitting on Humidity would result in a subsequent entropy of 0 for this subset and thus we are done for this subset.
+
+For $S_{\text{Overcast}}$ we have 4.286 (+) examples so we have an entropy of 0, thus we are done with this subset.
+
+For $S_{Rainy}$ there are 3.357 (+) and 2 (-) examples. 
+The entropy for this subset is H($S_{\text{Rainy}}) = 0.661$. Looking at the gain with respect to each remaining attributes the following was found
+\[
+    G(S_{\text{Rainy}},\text{Temperature}) = 0.021,
+    G(S_{\text{Rainy}},\text{Humidity}) = 0.021,
+    G(S_{\text{Rainy}},\text{Wind}) = 0.661. 
+\]
+We can see that splitting on Wind would result in a subsequent entropy of 0 for this subset and we are done for this subset.
+
+In the end we can see the final decision tree in \ref{fig:3d}.
+
+\begin{figure}[h]
+\begin{center}
+\begin{forest} 
+for tree={circle, draw, l sep=20pt, s sep=80pt}
+[Outlook, tikz={\draw[{Latex}-, thick] (.north) --++ (0,1);}
+    [Humidity,edge label={node[midway,left] {Sunny}}
+    [\textbf{-},edge label={node[midway,left] {High}}] 
+    [\textbf{+},edge label={node[midway,right] {Normal}}] 
+    ]
+    [\textbf{+},edge label={node[midway,left] {Overcast}}]
+    [Wind,edge label={node[left,midway] {Rainy}}
+    [\textbf{-},edge label={node[left,midway] {Strong}}] 
+    [\textbf{+},edge label={node[right,midway] {Weak}}] 
+    ]
+]
+\end{forest}
+\end{center}
+\caption{Decision tree representing 3d.}
+\label{fig:3d}
+\end{figure}
+
+\end{enumerate}
+
+\item ~[\textbf{Bonus question 1}]~[5 points].  Prove that the information gain is always non-negative.  That means, as long as we split the data, the purity will never get worse! (Hint: use convexity)
+
+
+\item ~[\textbf{Bonus question 2}]~[5 points].  We have discussed how to use decision tree for regression (i.e., predict numerical values) --- on the leaf node, we simply use the average of the (numerical) labels as the prediction.  Now, to construct a regression tree, can you invent a gain to select the best attribute to split data in ID3 framework?
+
+
+\end{enumerate}
+
+\section{Decision Tree Practice [60 points]}
+\begin{enumerate}
+	\item~[5 Points] Starting from this assignment, we will build a light-weighted machine learning library. 
+To this end, you will first need to create a code repository in \href{https://github.com/}{Github.com}. Please refer to the short introduction in the appendix and the \href{https://guides.github.com/activities/hello-world/}{official tutorial} to create an account and repository. Please commit a README.md file in your repository, and write one sentence: "This is a machine learning library developed by \textbf{Your Name} for CS5350/6350 in University of Utah".  You can now create a first folder, "DecisionTree". Please leave the link to your repository in the homework submission. We will check if you have successfully created it. 
+
+% 1
+\textit{Answer:} 
+
+Git repository here: 
+
+\url{https://github.com/dalbyryan3/cs-6350-machine-learning}
+
+
+\item~[30 points] We will implement a decision tree learning algorithm for car evaluation task. The dataset is from UCI repository(\url{https://archive.ics.uci.edu/ml/datasets/car+evaluation}). Please download the processed dataset (car.zip) from Canvas.  In this task, we have $6$ car attributes, and the label is the evaluation of the car. The attribute and label values are listed in the file ``data-desc.txt". All the attributes are categorical.  The training data are stored in the file ``train.csv'', consisting of $1,000$ examples. The test data are stored in ``test.csv'', and comprise $728$ examples. In both training and test datasets, attribute values are separated by commas; the file ``data-desc.txt''  lists the attribute names in each column. 
+\\
+
+\noindent Note: we highly recommend you to use Python for implementation, because it is very convenient to load the data and handle strings. For example, the following snippet reads the CSV file line by line and split the values of the attributes and the label into a list, ``terms''. You can also use ``dictionary'' to store the categorical attribute values. In the web are numerous tutorials and examples for Python. if you have issues, just google it!
+\begin{lstlisting}
+with open(CSVfile, 'r') as f:
+     for line in f:
+            terms = line.strip().split(',')
+            process one training example
+\end{lstlisting}
+\begin{enumerate}
+\item~[15 points] Implement the ID3 algorithm that supports, information gain,  majority error and gini index to select attributes for data splits. Besides, your ID3 should allow users to set the maximum tree depth. Note: you do not need to convert categorical attributes into binary ones and your tree can be wide here. 
+
+% 2a 
+\textit{Answer:} 
+
+Implemented here: 
+
+\url{https://github.com/dalbyryan3/cs-6350-machine-learning/tree/main/DecisionTree}
+
+
+\item~[10 points] Use your implemented algorithm to learn decision trees from the training data. Vary the maximum  tree depth from $1$ to $6$  --- for each setting, run your algorithm to learn a decision tree, and use the tree to  predict both the training  and test examples. Note that if your tree cannot grow up to 6 levels, you can stop at the maximum level. Report in a table the average prediction errors on each dataset when you use information gain, majority error and gini index heuristics, respectively.
+
+% 2b 
+\textit{Answer:} 
+
+See Table \ref{table:2bentropy} for entropy results. 
+
+See Table \ref{table:2bmajorityerror} for majority error results. 
+
+See Table \ref{table:2bginiindex} for gini index results. 
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.302 & 0.297 \\ \hline
+		2 & 0.222 & 0.223 \\ \hline
+		3 & 0.181 & 0.196 \\ \hline
+		4 & 0.082 & 0.147 \\ \hline
+		5 & 0.027 & 0.0810 \\ \hline
+		6 & 0.000 & 0.0810 \\ \hline
+		Average & 0.136 & 0.171 \\ \hline
+	\end{tabular}
+	\caption{Entropy heuristic test and train errors for different max depths, one the Car dataset}
+    \label{table:2bentropy}
+\end{table}
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.302 & 0.297 \\ \hline
+		2 & 0.222 & 0.223 \\ \hline
+		3 & 0.174 & 0.187 \\ \hline
+		4 & 0.089 & 0.130 \\ \hline
+		5 & 0.021 & 0.0893 \\ \hline
+		6 & 0.000 & 0.0893 \\ \hline
+		Average & 0.136 & 0.169 \\ \hline
+	\end{tabular}
+	\caption{Majority error heuristic test and train errors for different max depths, on the Car dataset}
+    \label{table:2bmajorityerror}
+\end{table}
+
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.302 & 0.297 \\ \hline
+		2 & 0.222 & 0.223 \\ \hline
+		3 & 0.176 & 0.184 \\ \hline
+		4 & 0.089 & 0.133 \\ \hline
+		5 & 0.027 & 0.0810 \\ \hline
+		6 & 0.000 & 0.0810 \\ \hline
+		Average & 0.136 & 0.166 \\ \hline
+	\end{tabular}
+	\caption{Gini index heuristic test and train errors for different max depths on the Car dataset}
+    \label{table:2bginiindex}
+\end{table}
+
+
+\item~[5 points] What can you conclude by comparing the training errors and the test errors? 
+
+% 2c 
+\textit{Answer:} 
+
+Looking at the training and test errors at different tree depths it can be seen that with with an increased max depth the lower the train errors are and the lower the test errors are as well (up to a point). 
+Test error decreases with increasing max depth to eventually become 0 at a max depth of 6.
+This makes sense since a deeper tree has more attribute splits and thus better fits the given training data which built the decision tree. 
+Looking at the test error we can see that it generally decreases with increasing max depth but for this data there is no difference between the test error of max depth 5 and 6 which implies beyond this depth we are overfitting the given data.
+This behavior with increasing max depth can be seen of all heuristics.
+
+Comparing the heuristics themselves we see similar results with some slight differences. 
+Each metric gives errors which are very similar, although there are some slight differences it really shows that each of these heuristics are attempting to provide a similar kind of guidance on what attribute to split on. 
+Gini index does provide the lowest average test error, but it is very close to the other metrics. 
+
+\end{enumerate}
+
+\item~[25 points] Next, modify your implementation a little bit to support numerical attributes. We will use a simple approach to convert a numerical feature to a binary one. We choose the media (NOT the average) of the attribute values (in the training set) as the threshold, and examine if the feature is bigger (or less) than the threshold. We will use another real dataset from UCI repository(\url{https://archive.ics.uci.edu/ml/datasets/Bank+Marketing}). This dataset contains $16$ attributes, including both numerical and categorical ones. Please download the processed dataset from Canvas (bank.zip).  The attribute and label values are listed in the file ``data-desc.txt". The training set is the file ``train.csv'', consisting of $5,000$ examples, and the test  ``test.csv'' with $5,000$ examples as well.  In both training and test datasets, attribute values are separated by commas; the file ``data-desc.txt''  lists the attribute names in each column. 
+\begin{enumerate}
+	\item~[10 points] Let us consider ``unknown'' as a particular attribute value, and hence we do not have any missing attributes for both training and test. Vary the maximum  tree depth from $1$ to $16$ --- for each setting, run your algorithm to learn a decision tree, and use the tree to  predict both the training  and test examples. Again, if your tree cannot grow up to $16$ levels, stop at the maximum level. Report in a table the average prediction errors on each dataset when you use information gain, majority error and gini index heuristics, respectively.
+	
+
+See Table \ref{table:3aentropy} for entropy results. 
+
+See Table \ref{table:3amajorityerror} for majority error results. 
+
+See Table \ref{table:3aginiindex} for gini index results. 
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.119 & 0.125 \\ \hline
+		2 & 0.106 & 0.111 \\ \hline
+		3 & 0.101 & 0.107 \\ \hline
+		4 & 0.080 & 0.115 \\ \hline
+		5 & 0.062 & 0.121 \\ \hline
+		6 & 0.048 & 0.132 \\ \hline
+		7 & 0.037 & 0.138 \\ \hline
+		8 & 0.029 & 0.144 \\ \hline
+		9 & 0.022 & 0.147 \\ \hline
+		10 & 0.018 & 0.152 \\ \hline
+		11 & 0.015 & 0.152 \\ \hline
+		12 & 0.013 & 0.154 \\ \hline
+		13 & 0.013 & 0.155 \\ \hline
+		14 & 0.013 & 0.155 \\ \hline
+		15 & 0.013 & 0.155 \\ \hline
+		16 & 0.013 & 0.155 \\ \hline
+		Average & 0.044 & 0.139 \\ \hline
+	\end{tabular}
+	\caption{Entropy heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as an attribute value}
+    \label{table:3aentropy}
+\end{table}
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.110 & 0.112 \\ \hline
+		2 & 0.104 & 0.109 \\ \hline
+		3 & 0.097 & 0.111 \\ \hline
+		4 & 0.086 & 0.112 \\ \hline
+		5 & 0.078 & 0.115 \\ \hline
+		6 & 0.071 & 0.117 \\ \hline
+		7 & 0.064 & 0.124 \\ \hline
+		8 & 0.056 & 0.132 \\ \hline
+		9 & 0.047 & 0.141 \\ \hline
+		10 & 0.034 & 0.152 \\ \hline
+		11 & 0.025 & 0.159 \\ \hline
+		12 & 0.021 & 0.162 \\ \hline
+		13 & 0.020 & 0.163 \\ \hline
+		14 & 0.020 & 0.163 \\ \hline
+		15 & 0.016 & 0.166 \\ \hline
+		16 & 0.013 & 0.167 \\ \hline
+		Average & 0.054 & 0.128 \\ \hline
+	\end{tabular}
+	\caption{Majority error heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as an attribute value}
+    \label{table:3amajorityerror}
+\end{table}
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.110 & 0.112 \\ \hline
+		2 & 0.104 & 0.109 \\ \hline
+		3 & 0.094 & 0.112 \\ \hline
+		4 & 0.075 & 0.118 \\ \hline
+		5 & 0.060 & 0.125 \\ \hline
+		6 & 0.048 & 0.134 \\ \hline
+		7 & 0.037 & 0.147 \\ \hline
+		8 & 0.027 & 0.151 \\ \hline
+		9 & 0.022 & 0.155 \\ \hline
+		10 & 0.018 & 0.157 \\ \hline
+		11 & 0.015 & 0.159 \\ \hline
+		12 & 0.014 & 0.160 \\ \hline
+		13 & 0.013 & 0.161 \\ \hline
+		14 & 0.013 & 0.161 \\ \hline
+		15 & 0.013 & 0.161 \\ \hline
+		16 & 0.013 & 0.161 \\ \hline
+		Average & 0.042 & 0.143 \\ \hline
+	\end{tabular}
+	\caption{Gini index heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as an attribute value}
+    \label{table:3aginiindex}
+\end{table}
+
+	\item~[10 points] Let us consider "unknown" as  attribute value missing. Here we simply complete it with the majority of other values of the same attribute in the training set.   Vary the maximum  tree depth from $1$ to $16$ --- for each setting, run your algorithm to learn a decision tree, and use the tree to  predict both the training  and test examples. Report in a table the average prediction errors on each dataset when you use information gain, majority error and gini index heuristics, respectively.
+
+	
+See Table \ref{table:3bentropy} for entropy results. 
+
+See Table \ref{table:3bmajorityerror} for majority error results. 
+
+See Table \ref{table:3bginiindex} for gini index results. 
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.119 & 0.125 \\ \hline
+		2 & 0.106 & 0.111 \\ \hline
+		3 & 0.102 & 0.108 \\ \hline
+		4 & 0.088 & 0.117 \\ \hline
+		5 & 0.070 & 0.122 \\ \hline
+		6 & 0.056 & 0.130 \\ \hline
+		7 & 0.045 & 0.137 \\ \hline
+		8 & 0.036 & 0.139 \\ \hline
+		9 & 0.030 & 0.143 \\ \hline
+		10 & 0.024 & 0.147 \\ \hline
+		11 & 0.021 & 0.148 \\ \hline
+		12 & 0.019 & 0.149 \\ \hline
+		13 & 0.018 & 0.149 \\ \hline
+		14 & 0.018 & 0.149 \\ \hline
+		15 & 0.018 & 0.149 \\ \hline
+		16 & 0.018 & 0.149 \\ \hline
+		Average & 0.049 & 0.136 \\ \hline
+	\end{tabular}
+	\caption{Entropy heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as a missing attribute value}
+    \label{table:3bentropy}
+\end{table}
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.109 & 0.112 \\ \hline
+		2 & 0.105 & 0.110 \\ \hline
+		3 & 0.098 & 0.114 \\ \hline
+		4 & 0.087 & 0.116 \\ \hline
+		5 & 0.082 & 0.116 \\ \hline
+		6 & 0.076 & 0.119 \\ \hline
+		7 & 0.071 & 0.123 \\ \hline
+		8 & 0.064 & 0.129 \\ \hline
+		9 & 0.054 & 0.137 \\ \hline
+		10 & 0.041 & 0.149 \\ \hline
+		11 & 0.030 & 0.157 \\ \hline
+		12 & 0.026 & 0.160 \\ \hline
+		13 & 0.023 & 0.162 \\ \hline
+		14 & 0.023 & 0.162 \\ \hline
+		15 & 0.019 & 0.162 \\ \hline
+		16 & 0.018 & 0.162 \\ \hline
+		Average & 0.058 & 0.137 \\ \hline
+	\end{tabular}
+	\caption{Majority error heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as a missing attribute value}
+    \label{table:3bmajorityerror}
+\end{table}
+
+\newpage
+\begin{table}[ht]
+	\centering
+	\begin{tabular}{|c|c|c|}
+        \hline
+		Max Depth & Train Error & Test Error\\ 
+		\hline\hline
+		1 & 0.109 & 0.112 \\ \hline
+		2 & 0.105 & 0.110 \\ \hline
+		3 & 0.101 & 0.108 \\ \hline
+		4 & 0.088 & 0.115 \\ \hline
+
+		5 & 0.072 & 0.119 \\ \hline
+		6 & 0.056 & 0.128 \\ \hline
+		7 & 0.045 & 0.136 \\ \hline
+		8 & 0.035 & 0.141 \\ \hline
+		9 & 0.030 & 0.144 \\ \hline
+		10 & 0.023 & 0.146 \\ \hline
+		11 & 0.021 & 0.147 \\ \hline
+		12 & 0.018 & 0.148 \\ \hline
+		13 & 0.018 & 0.148 \\ \hline
+		14 & 0.018 & 0.148 \\ \hline
+		15 & 0.018 & 0.148 \\ \hline
+		16 & 0.018 & 0.148 \\ \hline
+		Average & 0.048 & 0.134 \\ \hline
+	\end{tabular}
+	\caption{Gini index heuristic test and train errors for different max depths on the Bank dataset, considering "unknown" as a missing attribute value}
+    \label{table:3bginiindex}
+\end{table}
+
+	
+	\item~[5 points] What can you conclude by comparing the training errors and the test errors, with different tree depths, as well as different ways to deal with "unknown" attribute values?
+
+    \textit{Answer:} 
+
+    Looking at the training and test errors for max depths of 1 to 16 and the different metrics it can be seen that there is little difference between treating the "unknown" values as an additional attribute or as a missing attribute value. 
+    It is likely that if the "unknown" values were treated as missing attribute values and a different method of selecting the value to replace "unknown" with was used, there would be better results. 
+    A better method might be using fractional values corresponding to the possible values of the attribute.
+    Looking at increasing the max depth it is clear that the decision tree of max depths of more than around 3 overfit the Bank data. 
+    This is because the test error increases for all heuristics past a max depth of 3, while the training error continues to decrease.
+
+
+\end{enumerate}
+\end{enumerate}
+
+
+
+
+
+
+
+\pagebreak
+\section*{Appendix}
+\section*{What is GitHub?}
+You may have contacted with GitHub long before you realized its existence, since a large part of open source code reside in GitHub nowadays. And whenever you google for some open source code snap, like code for a course project or a research paper, you would possibly be directed to GitHub. 
+
+GitHub, as well as  many of its competitor like GitLab and BitBucket, is a so-called code hosting website, to which you upload and manage your code. For many first time user of GitHub, it's quite confusing that there is another software called git. Don't be confused now, git is a version control software and is the core of all these website. It can help you track the development of your code and manage them in a very organized way. Git works on your own local computer as other normal softwares do. Github, however, is just a website, or by its name, a hub, that you keep the code, just like a cloud storage space. How do we upload our code to GitHub? Yes, by Git!( or its variants). They are so dependent that when people say using GitHub, they mean they use git to manage their code, and keep their code in GitHub. That been said, as a stand-alone tool, git could  work perfectly on your local computer without Internet access, as long as your do not want to keep your code on-line and access them everywhere, or share them with others. 
+
+
+
+\section*{Core concepts and operations of GitHub}
+Here we only state the basic concepts of GitHub and git. Specific commands vary slightly depending on the Platforms ( Mac/Linux/WIN10) and command-line/GUI versions. Please refer to the link provided below for concrete examples and video tutorials. As you understand the whole working flow, those commands should be easy and straightforward to use. 
+
+There are two major parts we need to know about github. The on-line part of GitHub and local part of git. We start from GitHub.
+
+\subsection*{GitHub}
+If you have never had a GitHub account, please follow this link to create one. It also provides tutorial on basic operations of GitHub.
+
+
+\href{https://guides.github.com/activities/hello-world/}{https://guides.github.com/activities/hello-world/}\\
+
+Note that now you can create a private repository without paying to GitHub. In principle, we encourage you to create public repository. But if you somehow prefer a private one( i.e., can't be access by others), you must add TA's account as the collaborators in order to check your work.  
+
+These are some key concept you should know about:
+\begin{itemize}
+	\item Repository: Repository is the place where you keep your whole project, including every version, every branch of the code. For example, you will need to create a repository named Final-Project (or other suitable name), which will contain all your code, report and results.
+	
+	\item Branch: Branch allows you (and your partners) to developed different version of a repository at the same time. For example, you and your partner are working on the final project. Suddenly, you want to try some crazy algorithm but not sure if it would work. Now you create a new branch of the repository and continue your trying without breaking the original (usually called master) branch. If successful, you then merge this branch with the master branch. Otherwise, you can simply give up and delete this branch, and nothing in the master branch will be affected. 
+	
+	\item Pull Request: This is the heart of GitHub. Don't mistake this with PULL we will talk about later. Pull Request means when you finish your branch( like the crazy algorithm above), you make a request that the owner or manager of master branch to review your code, and merge them into the master branch. If accepted, any changes you make in your branch will also be reflected in the master branch. As the manager of master branch, you should also be careful to check the code about to be merged and address any potential conflicts this merge may introduce. 
+	
+	\item Merge: This operation means to merge two different branches into a single one. Any inconsistency must be addressed before merging. 
+\end{itemize}
+
+\subsection*{git}
+
+
+This link provides installation guides and video tutorial for basic git operation.
+
+\href{https://git-scm.com/doc}{https://git-scm.com/doc}\\
+
+This is a cheating-sheet for common commands of git.
+
+\href{https://confluence.atlassian.com/bitbucketserver/basic-git-commands-776639767.html}{https://confluence.atlassian.com/bitbucketserver/basic-git-commands-776639767.html}\\
+
+As said before, you can always use git in a local repository. More frequently, we link this repository to the one you create in GitHub and then you can use git to push (upload) you code to and pull (fetch) them from GitHub. Beside the original command-line interface, there are many softwares with nice GUI to access the functionalities of git, such as GitHub Desktop and Source Tree. 
+
+
+There are also some core operations you should know about:
+\begin{itemize}
+	\item clone: Download/Copy a repository from GitHub to your local disk. This would fetch everything of this repository. This is the most commonly used command to download someone else's code from GitHub.
+	
+	\item init: Initialize current fold a to local repository, which will generate some hidden files to track the changes.
+	
+	\item add: By default, no files in the repository folder are marked to be tracked. When you want to track the change of a file, use add operation to add this file to the tracking list. Normally, we only track the source code and report of our project, and we DON'T track datasets. As the datasets  never change once downloaded and are usually big. 
+	
+	\item commit: This is the most frequently used git operation. Commit means to make a LOCALLY check point. For example, you have done some change to the project, like adding a new  complex function, and it works well. Then you can commit with a comment "adding new function, test well ***". Later when you try to modify this function but fail, you can roll back to this check point and start over. Hence you do not need to  many copies before modification. 
+	
+	\item checkout: After you commit checkpoints, you can use checkout to roll back to these checkpoints in case you mess up.
+	
+	\item push: When you complete current task and make check very thing is good, you use push( after commit) to upload the local repository to GitHub. 
+	
+	\item pull: Fetch the content from GitHub. This is similar to Clone. But it only fetches content designated by the  parameters to the pull command.    
+\end{itemize}
+
+\subsection*{Work Flow}
+With concepts and operations introduced above, the work flow of using GitHub for a project is as follows:
+\begin{enumerate}
+	\item Create a repository in GitHub.
+	\item Create a local repository in your local computer and link it to the remote repository in GitHub.
+	\item Create source code files and add them to the tracking list.
+	\item Edit, modify and test your code. Commit and checkout whenever mess up.
+	\item Push your code to GitHub.
+\end{enumerate}
+
+If you start your work with an existed GitHub repository (like  the one created by your partner), Just replace steps 1 to 3 by pull or clone. \\
+
+You can play around with GitHub by creating some random  repositories and files to track. 
+Basic operation introduced above and in the links are more than enough to complete this course. If are you have further interest to master GitHub, there are several excellent on-line courses provided by Coursera and Udacity. Many tutorials are provided in the web as well. 
+
+
+\end{document}
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

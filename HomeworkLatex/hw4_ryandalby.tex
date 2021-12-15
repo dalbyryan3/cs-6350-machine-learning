@@ -1,0 +1,480 @@
+\DeclareUnicodeCharacter{FF0C}{ }
+\documentclass[12pt, fullpage,letterpaper]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xspace}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\newcommand{\semester}{Fall 2021}
+\newcommand{\assignmentId}{4}
+\newcommand{\releaseDate}{4 Nov, 2021}
+\newcommand{\dueDate}{11:59pm, 19 Nov, 2021}
+
+\newcommand{\bx}{{\bf x}}
+\newcommand{\bw}{{\bf w}}
+
+\graphicspath{{./images/}}
+
+\title{CS 5350/6350: Machine Learining \semester}
+\author{Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+	Due: \dueDate}
+
+
+\title{CS 5350/6350: Machine Learning \semester}
+\author{Ryan Dalby- Homework \assignmentId}
+\date{Handed out: \releaseDate\\
+  Due date: \dueDate}
+
+\begin{document}
+\maketitle
+
+\input{emacscomm}
+\newcommand{\Hcal}{\mathcal{H}} 
+{\footnotesize
+	\begin{itemize}
+		\item You are welcome to talk to other members of the class about
+		the homework. I am more concerned that you understand the
+		underlying concepts. However, you should write down your own
+		solution. Please keep the class collaboration policy in mind.
+		
+		\item Feel free to discuss the homework with the instructor or the TAs.
+		
+		\item Your written solutions should be brief and clear. You do not need to include original problem descriptions in your solutions. You need to
+		show your work, not just the final answer, but you do \emph{not}
+		need to write it in gory detail. Your assignment should be {\bf no
+			more than 15 pages}. Every extra page will cost a point.
+		
+		\item Handwritten solutions will not be accepted.
+		
+		
+		\item {\em Your code should run on the CADE machines}. \textbf{You should
+		include a shell script, {\tt run.sh}, that will execute your code
+		in the CADE environment. Your code should produce similar output to what you include in your report.}
+		
+		You are responsible for ensuring that the grader can execute the
+		code using only the included script. If you are using an
+		esoteric programming language, you should make sure that its
+		runtime is available on CADE.
+		
+		\item Please do not hand in binary files! We will {\em not} grade
+		binary submissions.
+		
+		\item The homework is due by \textbf{midnight of the due date}. Please submit
+		the homework on Canvas.
+		
+	\end{itemize}
+}
+
+
+\section{Paper Problems [40 points + 10 bonus]}
+\begin{enumerate}
+	\item~[9 points] The learning of soft SVMs is formulated as the following optimization problem,
+		\begin{align}
+		\min\limits_{\w, b, \{\xi_i\}} &\;\;\;\frac{1}{2}\w^\top\w + C\sum_i \xi_i， \nonumber\\
+		\mathrm{s.t.}\;\; \forall 1 \le i \le N,&\;\;\; y_i(\w^\top \x_i + b) \ge 1 - \xi_i , \nonumber \\
+		&\;\;\; \xi_i \ge 0 \nonumber
+		\end{align}
+		where $N$ is the number of the training examples.
+	As we discussed in the class, the slack variables $\{\xi_i\}$ are introduced to allow the training examples to break into the margin so that we can learn a linear classifier even when the data is not linearly separable. 
+	\begin{enumerate}
+		\item~[3 point] What values $\xi_i$ can take when the training example $\x_i$ breaks into the margin? 
+
+		% 1a
+		\textit{Answer:}
+		
+		When $\x_i$ breaks into the margin $\xi_i > 0$. 
+
+		\item~[3 point] What values $\xi_i$ can take when the training example $\x_i$ stays on or outside the margin? 
+
+		% 1b
+		\textit{Answer:}
+		
+		When $\x_i$ is on or outside the margin $\xi_i$ = 0. 
+
+		\item~[3 point] Why do we incorporate the term $C\cdot\sum_i \xi_i $ in the objective function? What will happen if we throw out this term?
+
+		% 1c
+		\textit{Answer:}
+		
+		This term is incorporated so we allow some examples to "break" into the margin. 
+		This is useful for real world data which is almost always non-separable.
+		Without this term the SVM has a hard margin and will never find a solution because the data is not separable.
+		Even though terms are allowed to "break" into the margin the formulation of minimizing $C\cdot\sum_i \xi_i $ still gives the notion of minimizing the slack, which still minimizes the "amount" terms "break" into the margin.
+
+	\end{enumerate}
+	
+	
+	\item~[6 points] Write down the dual optimization problem for soft SVMs.  
+	Please clearly indicate the constraints, and explain how it is derived. (Note: do NOT directly copy slides content, write down your own understanding.)
+	
+	% 2 
+	\textit{Answer:}
+
+	The equivalent dual form optimization problem to 1 is 
+	\[
+		\max_{\{\alpha_i \ge 0 \text{, } \beta_i \ge 0\}} {-\frac{1}{2} \sum_i \sum_j y_i y_j \alpha_i \alpha_j \x_i^\top \x_j} + \sum_i{\alpha_i}
+	\]
+	\[
+		\text{s.t.} \sum_i{\alpha_i y_i} = 0,
+	\]
+	\[
+		\forall i, \alpha_i + \beta_i = C.
+	\]
+
+	The first dual objective constraint ($\text{s.t.} \sum_i{\alpha_i y_i} = 0$) allows $\alpha$ to give weight to the class that appears less.
+	The dual optimization problem for SVM is derived by starting with the primal objective shown in 1. and rewriting the constraints and a min-max problem using lagrange multipliers.
+	Then the dual is taken which means the lagrangian optimization problem is now a max-min problem. 
+	From here the lagrangian multipliers can be fixed and the inner optimization solved by taking the gradient of the expanded out max-min problem and setting it equal to zero to get rid of the $\w, b, \{\xi_i\}$ and the inner minimization problem.
+	Now we have the dual in terms of $\alpha_i$, $\beta$, $y$, and $\x$ as shown in the dual optimization objective above.
+	From here we can use KKT conditions (complementary slackness) to get the final optimal dual solution and draw analogs($\w^*$ and $b^*$) to $\w$ and $b$ of the primal SVM optimization objective.
+
+
+	
+	\item~[10 points] Continue with the dual form. Suppose after the training procedure, you have obtained the optimal parameters.
+	\begin{enumerate}
+		\item~[4 points] What parameter values can indicate if an example stays outside the margin?
+
+		% 3a 
+		\textit{Answer:}
+
+		A non-support vector stays outside the margin.
+		$\alpha_i^*$ is the parameter that determines if the $i$th example is a support vector.
+		Thus if $\alpha_i^* = 0$ then the corresponding $i$ example is outside the margin.
+
+		\item~[6 points]  if we want to find out which training examples just sit on the margin (neither inside nor outside), what shall we do? Note you are not allowed to examine if the functional margin (\ie $y_i(\w^\top\x_i +b)$) is $1$.
+
+		% 3b 
+		\textit{Answer:}
+
+		If $\xi_i = 0$ then we know that the given $i$th example stays on or outside the margin.
+		If $\alpha_i^* > 0$ then we know that the given $i$th example is inside or on the margin.
+		Thus if $\xi_i = 0$ and $\alpha_i^* > 0$ then the example is on the margin.
+
+	\end{enumerate}
+	
+	
+	\item~[6 points] How can we use the kernel trick to enable SVMs to perform nonlinear classification? What is the corresponding optimization problem?
+
+	% 4 
+	\textit{Answer:}
+
+	To be able to perform non-linear classification we can transform the data into a higher dimensional space where the data is nearly linearly separable, in the limit this is an infinite dimensional space. 
+	This means we can save computational time/memory by computing the value of a kernel in the original space rather than the transformed infinite dimensional space (assuming the kernel has Gram Matrix that is positive semi-definite) and by using the dot product of $\x$ against itself that is already part of the dual form. 
+	The optimization objective (written without constraints on $\alpha$ and $\y$) is
+	\[
+		\min_{\{0 \le \alpha_i \le C , \sum_i{\alpha_i y_i} = 0\}} {\frac{1}{2} \sum_i \sum_j y_i y_j \alpha_i \alpha_j \K(\x_i, \x_j)} - \sum_i{\alpha_i}
+	\]
+	where an equivalent kernel function $K(\x_i, \x_j)$ computes $\phi(\x_i)^\top \phi(\x_j)$.
+		
+	%calculate the subgradient
+	\item~[9 points] Suppose we have the training dataset shown in Table 1. We want to learn a SVM classifier. We initialize all the model parameters with $0$. We set the learning rates for the first three steps to $\{0.01, 0.005, 0.0025\}$.  Please list the sub-gradients of the SVM objective w.r.t the model parameters for the first three steps, when using the stochastic sub-gradient descent algorithm. 
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{ccc|c}
+			$x_1$ & $x_2$ & $x_3$ &  $y$\\ 
+			\hline\hline
+			$0.5$ & $-1$ & $0.3$ & $1$ \\ \hline
+			$-1$ & $-2$ & $-2$ & $-1$\\ \hline
+			$1.5$ & $0.2$ & $-2.5$ & $1$\\ \hline
+		\end{tabular}
+	\caption{Dataset}
+	\end{table}
+
+	% 5 
+	\textit{Answer:}
+
+	Step 1:
+	\[
+		\nabla J^t = [-0.5, 1, -0.3, -1]^\top
+	\]
+	Step 2:
+	\[
+		\nabla J^t = [-0.995, -2.01, -1.997, 1]^\top
+	\]
+	Step 3:
+	\[
+		\nabla J^t = [-1.49, -0.19995, 2.513, -1]^\top
+	\]
+
+
+	%kernel Perceptron
+	\item~[\textbf{Bonus}][10 points] Let us derive a dual form for Perceptron. Recall, in each step of Perceptron, we add to the current weights $\w$ (including the bias parameter) $y_i\x_i$ for some misclassified example $(\x_i, y_i)$. We initialize $\w$ with $\mathbf{0}$. So, instead of updating $\w$, we can maintain for each training example $i$ a mistake count $c_i$ --- the number of times the data point $(\x_i, y_i)$ has been misclassified. 
+	
+	\begin{itemize}
+		\item~[2 points] Given the mistake counts of all the training examples, $\{c_1, \ldots, c_N\}$, how can we recover $\w$? How can we make predictions with these mistake counts? 
+		\item~[3 points] Can you develop an algorithm that uses mistake counts to learn the Perceptron? Please list the pseudo code. 
+		\item~[5 points] Can you apply the kernel trick to develop an nonlinear Perceptron? If so, how do you conduct classification? Can you give the pseudo code fo learning this kernel Perceptron? 
+	\end{itemize}   
+	
+\end{enumerate}
+
+\section{Practice [60 points + 10 bonus ]}
+\begin{enumerate}
+	\item~[2 Points] Update your machine learning library. Please check in your implementation of Perceptron, voted Perceptron and average Perceptron algorithms. Remember last time you created the folders ``Perceptron". You can commit your code into the corresponding folders now. Please also supplement README.md with concise descriptions about how to use your code to run these algorithms (how to call the command, set the parameters, etc). Please create a new folder ``SVM" in the same level as these folders.  
+
+	% 1 
+	\textit{Answer:}
+
+	Link to GitHub commit for this homework: \url{https://github.com/dalbyryan3/cs-6350-machine-learning/tree/0100283bffcfbab4b82b2496770cbd8c160e23b0} 
+
+
+%kernel perceptron, kernel svms
+	\item~[28 points] We will first implement SVM in the primal domain with stochastic sub-gradient descent. We will reuse the  dataset for Perceptron implementation, namely, ``bank-note.zip'' in Canvas. The features and labels are listed in the file ``classification/data-desc.txt''. The training data are stored in the file ``classification/train.csv'', consisting of $872$ examples. The test data are stored in ``classification/test.csv'', and comprise of $500$ examples. In both the training and test datasets, feature values and labels are separated by commas. Set the maximum epochs $T$ to 100. Don't forget to shuffle the training examples at the start of each epoch. Use the curve of the objective function (along with the number of updates) to diagnosis the convergence. Try the hyperparameter $C$ from $\{ \frac{100}{873}, \frac{500}{873,} \frac{700}{873}\}$. Don't forget to convert the labels to be in $\{1, -1\}$.  
+	\begin{enumerate}
+		\item~[12 points] Use the schedule of learning rate: $\gamma_t = \frac{\gamma_0}{1+\frac{\gamma_0}{a}t}	$. Please tune $\gamma_0$ and $a$ to ensure convergence. For each setting of $C$, report your training and test error. 
+
+		% 2a 
+		\textit{Answer:}
+
+		$\gamma_0 = 0.1$ and $a = 0.1$ was used for training.
+
+		\begin{center}
+			\includegraphics[scale=0.7]{2a.png}
+		\end{center}
+
+		\begin{center}
+		\begin{tabular}{|c|c|c|}
+			\hline
+			C & Training Error & Test Error \\
+			\hline
+			$100/873$ & 0.0161 & 0.0140 \\
+			\hline
+			$500/873$ & 0.0493 & 0.0680 \\
+			\hline
+			$700/873$ & 0.0619 & 0.0700 \\
+			\hline
+		\end{tabular}
+		\end{center}
+
+
+		\item~[12 points] Use the schedule $\gamma_t = \frac{\gamma_0}{1+t}$. Report the training and test error for each setting of C. 
+
+		% 2b 
+		\textit{Answer:}
+		
+		$\gamma_0 = 0.1$ was used for training.
+
+		\begin{center}
+			\includegraphics[scale=0.7]{2b.png}
+		\end{center}
+
+		\begin{center}
+		\begin{tabular}{|c|c|c|}
+			\hline
+			C & Training Error & Test Error \\
+			\hline
+			$100/873$ & 0.0378 & 0.0360 \\
+			\hline
+			$500/873$ & 0.0333 & 0.0360 \\
+			\hline
+			$700/873$ & 0.0252 & 0.0300 \\
+			\hline
+		\end{tabular}
+		\end{center}
+
+		\item~[6 points] For each $C$, report the differences between the model parameters learned from the two learning rate schedules, as well as the differences between the training/test errors. What can you conclude? 
+
+		% 2c 
+		\textit{Answer:}
+
+		\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			C & a) Training Err & a) Test Err & b) Training Err & b) Test Err \\
+			\hline
+			$100/873$ & 0.0161 & 0.0140 & 0.0378 & 0.0360 \\
+			\hline
+			$500/873$ & 0.0493 & 0.0680 & 0.0333 & 0.0360 \\
+			\hline
+			$700/873$ & 0.0619 & 0.0700 & 0.0252 & 0.0300 \\
+			\hline
+
+		\end{tabular}
+		\end{center}
+
+		\begin{center}
+		\begin{tabular}{|c|c|c|c|c|}
+			\hline
+			C & a) Weight Vec & a) Bias & b) Weight Vec & b) Bias \\
+			\hline
+			$100/873$ & [-2.898 -1.867 -1.796 -0.754] & 3.307 & [-3.267 -1.564 -1.597 -1.081] & 3.592\\
+			\hline
+			$500/873$ & [-12.0462  -8.356  -5.400  -0.308] & 11.638 & [-9.609 -4.166 -6.159 -1.664]& 14.296 \\
+			\hline
+			$700/873$ & [-16.125  -7.700 -12.975  -3.0174] & 21.881 & [-18.675  -7.654 -10.059  -2.410] & 19.959 \\
+			\hline
+		\end{tabular}
+		\end{center}
+
+	As can be seen by the tables above it appears that for smaller C values there is a preference to make the weight vector as small as possible.
+	This makes sense as a low C value is emphasizing the maximizing margin term of SVM.
+	We see that higher C values give a bigger weight vector since the restriction on minimizing the margin is loosened for emphasizing reducing errors made.
+
+	In terms of the training and test errors it seems that the learning rate scheduling used in 2a resulted comparable results to that of 2b but it 2a although the best result in terms of test error occurred in 2a since the parameter a gives better ability to tune the learning rate schedule.
+	Another example of this idea is in the plot for 2a which shows more stable learning than the plot in 2b.
+	This is likely because a was able to be tuned and that the $\frac{\gamma_0}{a}$ term allows the denominator to be influenced by the initial learning rate. 
+
+	\end{enumerate}
+
+
+\item~[30 points] Now let us implement SVM in the dual domain. We use the same dataset, ``bank-note.zip''. You can utilize existing constrained optimization libraries. For Python, we recommend using ``scipy.optimize.minimize'', and you can learn how to use this API from the document at \url{https://docs.scipy.org/doc/scipy-0.19.0/reference/generated/scipy.optimize.minimize.html}. We recommend using SLSQP to incorporate the equality constraints.
+For Matlab, we recommend using the internal function ``fmincon''; the document and examples are given at \url{https://www.mathworks.com/help/optim/ug/fmincon.html}.  
+For R, we recommend using the ``nloptr'' package with detailed documentation at \url{https://cran.r-project.org/web/packages/nloptr/nloptr.pdf}.
+
+\begin{enumerate}
+	\item ~[10 points] First, run your dual SVM learning algorithm with   $C$ in $\{\frac{100}{873}, \frac{500}{873}, \frac{700}{873}\}$. Recover the feature weights $\w$ and the bias $b$. Compare with the parameters learned with stochastic sub-gradient descent in the primal domain (in Problem 2) and the same settings of $C$, what can you observe? What do you conclude and why?
+
+	% 3a 
+	\textit{Answer:}
+
+	\begin{center}
+	\begin{tabular}{|c|c|c|c|c|}
+		\hline
+		C & Weight Vec & Bias & Train Err & Test Err\\
+		\hline
+		$100/873$ & [-0.943 -0.651 -0.734 -0.0410] & 2.517 & 0.0264 & 0.0300 \\
+		\hline
+		$500/873$ & [-1.564  -1.014 -1.181 -0.157] & 3.965 & 0.0310 & 0.0360 \\
+		\hline
+		$700/873$ & [-2.043 -1.280 -1.513 -0.248] & 5.037 & 0.0344 & 0.0360 \\
+		\hline
+	\end{tabular}
+	\end{center}
+
+	Comparing the table above to problem 2 we can see that the training and test error is generally lower using direct quadratic optimization of the dual linear SVM objective. 
+	The weight vector and bias are also smaller than problem 2 in all corresponding values of $C$.
+	The values of the weight vector of each $C$ is generally similar in terms of relative values when compared to stochastic gradient decent optimized values in problem 2.
+
+	Overall, the quadratically optimized dual SVM objective performs better but requires longer training. 
+	Stochastic gradient descent has some advantages as it can perform better or similar in terms of error for select examples, this can be attributed to the regularization that the stochastic training provides.
+	Also, I attribute the lower training error of stochastic gradient decent in one of the cases to the "small" training set and regularization of stochastic training which in a way can help perform better against certain examples "accidentally".
+
+	
+	\item~[15 points] Now, use Gaussian kernel in the dual form to implement the nonlinear SVM. Note that you need to modify both the objective function and the prediction. The Gaussian kernel is defined as follows:
+	\[
+	k(\x_i, \x_j) = \exp(-\frac{\|\x_i - \x_j\|^2}{\gamma}).
+	\]
+	Test $\gamma$ from $\{0.1, 0.5, 1,  5, 100\}$ and the hyperparameter $C$ from $\{ \frac{100}{873}, \frac{500}{873},  \frac{700}{873}\}$. List the training and test errors for the combinations of all the $\gamma$ and $C$ values. What is the best combination? Compared with linear SVM with the same settings of $C$, what do you observe? What do you conclude and why?  
+
+	% 3b 
+	\textit{Answer:}
+
+	\begin{center}
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		C & $\gamma$ & Train Err & Test Err \\
+		\hline
+		$100/873$ & 0.1 & 0.0768 & 0.396 \\
+		\hline
+		$100/873$ & 0.5 & 0.0115 & 0.122 \\
+		\hline
+		$100/873$ & 1 & 0.00115 & 0.0260 \\
+		\hline
+		$100/873$ & 5 & 0.00344 & 0.0040 \\
+		\hline
+		$100/873$ & 100 & 0.0161 & 0.014 \\
+		\hline
+		$500/873$ & 0.1 & 0.000 & 0.214 \\
+		\hline
+		$500/873$ & 0.5 & 0.000 & 0.0140 \\
+		\hline
+		$500/873$ & 1 & 0.000 & 0.0040 \\
+		\hline
+		$500/873$ & 5 & 0.000 & 0.000 \\
+		\hline
+		$500/873$ & 100 & 0.0080 & 0.006 \\
+		\hline
+		$700/873$ & 0.1 & 0.000 & 0.182 \\
+		\hline
+		$700/873$ & 0.5 & 0.000 & 0.010 \\
+		\hline
+		$700/873$ & 1 & 0.000 & 0.004 \\
+		\hline
+		$700/873$ & 5 & 0.000 & 0.000 \\
+		\hline
+		$700/873$ & 100 & 0.008 & 0.006 \\
+		\hline
+	\end{tabular}
+	\end{center}
+	
+	The best combination of hyperparameters is $C = \frac{500}{873}$ and $\gamma = 5$ as well as $C = \frac{700}{873}$ and $\gamma = 5$ which both yield near 0\% error on both training and test sets.
+	This illustrates the power of kernel based SVM which can learn complex decision boundaries on the small dataset.
+	Compared with linear SVM with the same $C$ values we get similar trends in terms of how a higher C can focus more on penalizing error than maximizing margin. 
+	It can also be seen that RBF kernelized SVM is more powerful than linear SVM with the right choice of gamma value for the problem, due to the ability to discern non linear decision boundaries.
+	There are times when the test error is high, but generally the kernelized SVM has lower train and test errors for the same $C$ than linear SVM for this problem.
+
+	\item~[5 points] Following (b), for each setting of $\gamma$ and $C$, list the number of support vectors. When $C = \frac{500}{873}$, report the number of overlapped support vectors between consecutive values of $\gamma$, \ie how many support vectors are the same for $\gamma= 0.01$ and $\gamma = 0.1$; how many are the same for  $\gamma = 0.1$ and $\gamma = 0.5$, etc. What do you observe and conclude? Why?
+
+	% 3c 
+	\textit{Answer:}
+
+	\begin{center}
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		C & $\gamma$ & Number of Support Vectors \\ 
+		\hline
+		$100/873$ & 0.1 & 869 \\
+		\hline
+		$100/873$ & 0.5 & 839 \\
+		\hline
+		$100/873$ & 1 & 856 \\
+		\hline
+		$100/873$ & 5 & 556 \\
+		\hline
+		$100/873$ & 100 & 462 \\
+		\hline
+		$500/873$ & 0.1 & 870 \\
+		\hline
+		$500/873$ & 0.5 & 843 \\
+		\hline
+		$500/873$ & 1 & 765 \\
+		\hline
+		$500/873$ & 5 & 718 \\
+		\hline
+		$500/873$ & 100 & 492 \\
+		\hline
+		$700/873$ & 0.1 & 871 \\
+		\hline
+		$700/873$ & 0.5 & 736 \\
+		\hline
+		$700/873$ & 1 & 604 \\
+		\hline
+		$700/873$ & 5 & 679 \\
+		\hline
+		$700/873$ & 100 & 408 \\
+		\hline
+	\end{tabular}
+	\end{center}
+
+	\begin{center}
+	\begin{tabular}{|c|c|c|c|}
+		\hline
+		C & Last $\gamma$ & $\gamma$ & Overlapping Support Vectors \\ 
+		\hline
+		$500/873$ & 0.1 & 0.5 & 5 \\
+		\hline
+		$500/873$ & 0.5 & 1 & 24 \\
+		\hline
+		$500/873$ & 1 & 5 & 27 \\
+		\hline
+		$500/873$ & 5 & 100 & 75 \\
+		\hline
+	\end{tabular}
+	\end{center}
+
+	It appears as C is increased the number of support vectors generally decreases.
+	This makes sense as a higher C increases the penalty of making a wrong prediction while a lower C focuses on creating a larger separating margin while classifying more examples incorrectly, thus resulting in more examples breaking into the margin and becoming support vectors.
+
+	It also appears that as $\gamma$ is increased the number of consecutive overlapping support vectors between the next higher $\gamma$ increases.
+	It appears for the way gamma is formulated in this RBF kernel a smaller $\gamma$ means it has less influence on other support vectors, while larger $\gamma$ means a more coupled influence of support vectors.
+	
+	\item~[\textbf{Bonus}]~[10 points] Implement the kernel Perceptron algorithm you developed in Problem 8 (Section 1). Use Gaussian kernel and test $\gamma$ from $\{ 0.1, 0.5, 1, 5, 100\}$. List the training and test errors accordingly. Compared with the nonlinear SVM, what do you observe? what do you conclude and why?
+	
+\end{enumerate} 
+
+\end{enumerate}
+\end{document}
